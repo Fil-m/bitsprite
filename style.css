@@ -100,10 +100,11 @@ canvas {
   color: var(--neon-cyan);
 }
 
-/* Float horizontal Action Slots Panel above left controls */
+/* Float horizontal Action Slots Panel below HUD */
 #action-slots-panel {
-  bottom: 110px;
-  left: 30px;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
   padding: 8px;
   display: flex;
   flex-direction: row;
@@ -195,9 +196,8 @@ canvas {
 
 #btn-block {
   position: absolute;
-  top: 90px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 110px;
+  left: 30px;
   width: 120px;
   height: 38px;
   border-radius: 19px;
