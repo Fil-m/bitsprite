@@ -195,12 +195,27 @@ class BitSpriteRenderer {
   drawPlatforms(ctx, game) {
     ctx.save();
 
-    game.platforms.forEach(plat => {
+    const isGod = localStorage.getItem('bitsprite_godmode') === 'true';
+    const isFlickerOff = isGod && game.activePhase === 3 && (Math.floor(Date.now() / 1500) % 2 === 0);
+
+    game.platforms.forEach((plat, idx) => {
       // Disappearing platforms have no physical body when 0% charged
       if (plat.behavior === 'disappearing' && plat.charge <= 0) return;
 
       // Spectre Platform active check
       if (plat.behavior === 'cache' && !game.isSpectreActive) return;
+
+      ctx.save();
+      if (isFlickerOff && idx % 2 === 0) {
+        ctx.globalAlpha = 0.15;
+        ctx.setLineDash([4, 4]);
+      }
+
+      // Draw conveyer belt directional stripes in Phase 4 God Mode!
+      if (isGod && game.activePhase === 4 && plat.behavior !== 'spikes') {
+        ctx.fillStyle = "rgba(255, 204, 0, 0.25)";
+        ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
+      }
 
       if (game.activePhase === 0) {
         // Wooden textured platforms
@@ -292,6 +307,7 @@ class BitSpriteRenderer {
         ctx.fillStyle = plat.charge > 30 ? "cyan" : "red";
         ctx.fillRect(plat.x + 6, plat.y + plat.h - 10, barW, 6);
       }
+      ctx.restore();
     });
 
     ctx.restore();

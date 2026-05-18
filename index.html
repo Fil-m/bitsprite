@@ -88,7 +88,7 @@
       <div class="menu-buttons">
         <button class="menu-btn" id="btn-play-arcade" onclick="startArcadeMode()">АРКАДА</button>
         <button class="menu-btn" id="btn-play-story" onclick="startStoryMode()">СЮЖЕТ</button>
-        <button class="menu-btn" id="btn-menu-achievements" onclick="openAchievements()">АЧІВКИ</button>
+        <button class="menu-btn" id="btn-menu-achievements" onclick="openAchievements()" style="display: none;">АЧІВКИ</button>
         <button class="menu-btn" id="btn-menu-settings" onclick="openSettings()">НАЛАШТУВАННЯ</button>
         <button class="menu-btn" id="btn-menu-restart" onclick="restartMainGame()" style="border-color: #ff3366; color: #ff3366; margin-top: 10px;">ПОЧАТИ ЗНОВУ</button>
       </div>
@@ -113,6 +113,16 @@
         <div class="setting-row">
           <span id="sett-godmode" style="color: #ffcc00; font-weight: bold;">Режим Бога</span>
           <button class="menu-btn" id="btn-godmode-toggle" onclick="toggleGodMode()" style="border-color: #ffcc00; color: #ffcc00;">ВИМКНЕНО</button>
+        </div>
+        <div class="setting-row" id="godmode-phase-row" style="display: none;">
+          <span id="sett-godmode-phase" style="color: #ffcc00;">Фаза Симуляції</span>
+          <select id="godmode-phase-select" onchange="changeGodModePhase(this.value)" style="background: #111; color: #ffcc00; border: 1px solid #ffcc00; padding: 5px 10px; font-family: 'Courier Prime', monospace; font-size: 16px; outline: none; border-radius: 4px; cursor: pointer;">
+            <option value="0">ФАЗА 1 (Зелена / Стандарт)</option>
+            <option value="1">ФАЗА 2 (Сіра / Слизька)</option>
+            <option value="2">ФАЗА 3 (Синя / Стрибуча)</option>
+            <option value="3">ФАЗА 4 (Зелена / Миготлива)</option>
+            <option value="4">ФАЗА 5 (Червона / Конвеєр)</option>
+          </select>
         </div>
         <button class="menu-btn" id="btn-reset-prog" onclick="resetProgress()" style="border-color: #ff3366; color: #ff3366;">Скинути Прогрес</button>
         <button class="menu-btn" onclick="closeScreen('settings-screen')">НАЗАД</button>
@@ -292,9 +302,50 @@
       document.getElementById('btn-vibrate-toggle').innerText = window.gameSettings.vibration ? trans.settings.on : trans.settings.off;
 
       // God Mode UI localization updates
-      const isGodMode = localStorage.getItem('bitsprite_godmode') === 'true';
-      document.getElementById('sett-godmode').innerText = lang === 'ua' ? 'Режим Бога' : 'God Mode';
-      document.getElementById('btn-godmode-toggle').innerText = isGodMode ? (lang === 'ua' ? 'УВІМКНЕНО' : 'ENABLED') : (lang === 'ua' ? 'ВИМКНЕНО' : 'DISABLED');
+      const isCompleted = localStorage.getItem('bitsprite_completed') === 'true';
+      const godToggle = document.getElementById('btn-godmode-toggle');
+      const phaseRow = document.getElementById('godmode-phase-row');
+      
+      if (isCompleted) {
+        const isGodMode = localStorage.getItem('bitsprite_godmode') === 'true';
+        document.getElementById('sett-godmode').innerText = lang === 'ua' ? 'Режим Бога' : 'God Mode';
+        godToggle.innerText = isGodMode ? (lang === 'ua' ? 'УВІМКНЕНО' : 'ENABLED') : (lang === 'ua' ? 'ВИМКНЕНО' : 'DISABLED');
+        godToggle.style.opacity = '1.0';
+        godToggle.style.cursor = 'pointer';
+        godToggle.style.borderColor = '#ffcc00';
+        godToggle.style.color = '#ffcc00';
+        
+        // Show/hide phase selection row based on god mode status
+        if (isGodMode) {
+          phaseRow.style.display = 'flex';
+          document.getElementById('sett-godmode-phase').innerText = lang === 'ua' ? 'Фаза Симуляції' : 'Simulation Phase';
+          
+          // Pre-select current active phase
+          if (window.GameKernel) {
+            document.getElementById('godmode-phase-select').value = window.GameKernel.activePhase;
+          }
+          
+          // Translate select options
+          const selectEl = document.getElementById('godmode-phase-select');
+          selectEl.options[0].text = lang === 'ua' ? 'ФАЗА 1 (Зелена / Стандарт)' : 'PHASE 1 (Green / Standard)';
+          selectEl.options[1].text = lang === 'ua' ? 'ФАЗА 2 (Сіра / Слизька)' : 'PHASE 2 (Grey / Slippery)';
+          selectEl.options[2].text = lang === 'ua' ? 'ФАЗА 3 (Синя / Стрибуча)' : 'PHASE 3 (Blue / Bouncy)';
+          selectEl.options[3].text = lang === 'ua' ? 'ФАЗА 4 (Зелена / Миготлива)' : 'PHASE 4 (Green / Flickering)';
+          selectEl.options[4].text = lang === 'ua' ? 'ФАЗА 5 (Червона / Конвеєр)' : 'PHASE 5 (Red / Conveyor)';
+        } else {
+          phaseRow.style.display = 'none';
+        }
+      } else {
+        // If not completed, force disable God Mode!
+        localStorage.setItem('bitsprite_godmode', 'false');
+        document.getElementById('sett-godmode').innerText = lang === 'ua' ? 'Режим Бога (Недоступно)' : 'God Mode (Locked)';
+        godToggle.innerText = lang === 'ua' ? '🔐 ЗАБЛОКОВАНО' : '🔐 LOCKED';
+        godToggle.style.opacity = '0.5';
+        godToggle.style.cursor = 'not-allowed';
+        godToggle.style.borderColor = '#888';
+        godToggle.style.color = '#888';
+        phaseRow.style.display = 'none';
+      }
     }
 
     // Pre-populate operator name on boot
@@ -456,10 +507,23 @@
     }
 
     function toggleGodMode() {
+      // God mode can ONLY be activated after full game completion!
+      if (localStorage.getItem('bitsprite_completed') !== 'true') {
+        if (window.AudioEngine) window.AudioEngine.play('death');
+        return;
+      }
       const current = localStorage.getItem('bitsprite_godmode') === 'true';
       const newVal = !current;
       localStorage.setItem('bitsprite_godmode', newVal ? 'true' : 'false');
       updateLocalizedTexts();
+    }
+
+    function changeGodModePhase(val) {
+      const phaseNum = parseInt(val);
+      if (window.GameKernel) {
+        window.GameKernel.setPhase(phaseNum);
+        if (window.AudioEngine) window.AudioEngine.play('collect');
+      }
     }
 
     function saveSettings() {
@@ -599,6 +663,7 @@
     function showTerminalDialogue() {
       if (terminalVisible) return;
       terminalVisible = true;
+      localStorage.setItem('bitsprite_completed', 'true');
 
       const trans = window.translations;
       const overlay = document.getElementById('terminal-overlay');

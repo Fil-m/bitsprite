@@ -624,6 +624,8 @@ class BitSpriteGame {
     if (this.keysPressed['KeyA'] || this.keysPressed['ArrowLeft'] || this.touchInputs.left) moveDir = -1;
     if (this.keysPressed['KeyD'] || this.keysPressed['ArrowRight'] || this.touchInputs.right) moveDir = 1;
 
+    const isGod = localStorage.getItem('bitsprite_godmode') === 'true';
+
     // Apply movement accelerations
     if (moveDir !== 0) {
       this.player.vx += moveDir * PHYSICS.ACCELERATION * dt;
@@ -631,9 +633,14 @@ class BitSpriteGame {
       this.player.tilt = moveDir * 12;
     } else {
       // Friction apply
-      const friction = this.player.isOnGround ? PHYSICS.GROUND_FRICTION : PHYSICS.AIR_FRICTION;
+      const friction = (isGod && this.activePhase === 1) ? 0.996 : (this.player.isOnGround ? PHYSICS.GROUND_FRICTION : PHYSICS.AIR_FRICTION);
       this.player.vx *= friction;
       this.player.tilt *= 0.8;
+    }
+
+    // Phase 4 God Mode Conveyor push
+    if (isGod && this.activePhase === 4 && this.player.isOnGround) {
+      this.player.x += 160 * dt;
     }
 
     // Speed bounds
@@ -801,13 +808,19 @@ class BitSpriteGame {
   checkWorldCollisions() {
     this.player.isOnGround = false;
 
+    const isGod = localStorage.getItem('bitsprite_godmode') === 'true';
+    const isFlickerOff = isGod && this.activePhase === 3 && (Math.floor(Date.now() / 1500) % 2 === 0);
+
     // Platform Collisions (AABB)
-    this.platforms.forEach(plat => {
+    this.platforms.forEach((plat, idx) => {
       // Disappearing platforms have no physical body when 0% charged
       if (plat.behavior === 'disappearing' && plat.charge <= 0) return;
 
       // Spectre Platform active check
       if (plat.behavior === 'cache' && !this.isSpectreActive) return;
+
+      // Phase 3 Glitchy: skip collision for even platforms in God Mode during "off" cycle
+      if (isFlickerOff && idx % 2 === 0) return;
 
       if (
         this.player.x < plat.x + plat.w &&
@@ -818,8 +831,15 @@ class BitSpriteGame {
         // Collision resolved vertically
         if (this.player.vy > 0 && this.player.y + this.player.h - this.player.vy * 0.05 <= plat.y + 8) {
           this.player.y = plat.y - this.player.h;
-          this.player.vy = 0;
-          this.player.isOnGround = true;
+
+          if (isGod && this.activePhase === 2) {
+            // Phase 2: Trampoline bounce!
+            this.player.vy = -PHYSICS.JUMP_FORCE * 1.35;
+            if (window.AudioEngine) window.AudioEngine.play('jump');
+          } else {
+            this.player.vy = 0;
+            this.player.isOnGround = true;
+          }
 
           // Stomping on DRAM platform refreshes it
           if (plat.behavior === 'disappearing') {
