@@ -1,0 +1,12 @@
+{
+  "name": "bitsprite-clean",
+  "version": "3.0.0",
+  "description": "Premium 16-bit low-level virtual CPU platformer game.",
+  "scripts": {
+    "dev": "npx -y live-server ./"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

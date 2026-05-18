@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BitSprite — Showroom Debug Console</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background-color: #05070a;
+      display: flex;
+      flex-direction: row;
+      width: 100vw;
+      height: 100vh;
+      font-family: var(--font-display);
+    }
+
+    #left-game-frame {
+      width: 60%;
+      height: 100%;
+      border-right: 2px solid rgba(255,255,255,0.05);
+      position: relative;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    #right-console-frame {
+      width: 40%;
+      height: 100%;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+      background: #080b11;
+      border-left: 2px solid rgba(0, 240, 255, 0.1);
+    }
+
+    .panel-section {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+    }
+
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--neon-cyan);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 15px;
+      border-bottom: 1px solid rgba(0,240,255,0.1);
+      padding-bottom: 6px;
+    }
+
+    .grid-controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .show-btn {
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .show-btn:hover {
+      border-color: var(--neon-cyan);
+      background: rgba(0, 240, 255, 0.08);
+      box-shadow: 0 0 10px rgba(0,240,255,0.15);
+    }
+
+    .register-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      font-family: var(--font-mono);
+    }
+
+    .reg-box {
+      background: #000;
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .reg-name {
+      color: var(--neon-magenta);
+    }
+
+    .reg-val {
+      color: lime;
+      font-weight: bold;
+    }
+
+    #osc-canvas {
+      width: 100%;
+      height: 120px;
+      background: #000;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left: Live interactive frame of index.html -->
+  <div id="left-game-frame">
+    <iframe src="index.html" id="game-iframe"></iframe>
+  </div>
+
+  <!-- Right: Real-time Debug Panel Console -->
+  <div id="right-console-frame">
+    <h2 style="font-size: 20px; font-weight: 800; letter-spacing: 1px; color: #fff; text-shadow: 0 0 10px rgba(0,240,255,0.35);">
+      CORE-0 SHOWROOM PANEL
+    </h2>
+
+    <!-- Phase Selector -->
+    <div class="panel-section">
+      <div class="section-title">Системна Фаза (Story Warp)</div>
+      <div class="grid-controls">
+        <button class="show-btn" onclick="warpPhase(0)">Фаза 0: Сон</button>
+        <button class="show-btn" onclick="warpPhase(1)">Фаза 1: Аномалія</button>
+        <button class="show-btn" onclick="warpPhase(2)">Фаза 2: Ехо</button>
+        <button class="show-btn" onclick="warpPhase(3)">Фаза 3: Ядро</button>
+        <button class="show-btn" onclick="warpPhase(4)">Фаза 4: Глітч</button>
+      </div>
+    </div>
+
+    <!-- Exploit Cheat Unlocks -->
+    <div class="panel-section">
+      <div class="section-title">Емуляція Хаків (Instant Cheat Unlock)</div>
+      <div class="grid-controls">
+        <button class="show-btn" onclick="cheatUnlock('rowhammer')">Rowhammer</button>
+        <button class="show-btn" onclick="cheatUnlock('spectre')">Spectre</button>
+        <button class="show-btn" onclick="cheatUnlock('hijack')">Bus Hijack</button>
+        <button class="show-btn" onclick="cheatUnlock('overflow')">Overflow</button>
+        <button class="show-btn" onclick="cheatUnlock('glitch')">Glitch</button>
+      </div>
+    </div>
+
+    <!-- Core-0 CPU Register monitors -->
+    <div class="panel-section">
+      <div class="section-title">Регістри Віртуального CPU (Core-0)</div>
+      <div class="register-grid">
+        <div class="reg-box"><span class="reg-name">PC</span><span class="reg-val" id="reg-pc">0x0000</span></div>
+        <div class="reg-box"><span class="reg-name">SP</span><span class="reg-val" id="reg-sp">0x3C00</span></div>
+        <div class="reg-box"><span class="reg-name">REG_A</span><span class="reg-val" id="reg-a">0x0000</span></div>
+        <div class="reg-box"><span class="reg-name">REG_B</span><span class="reg-val" id="reg-b">0x0000</span></div>
+        <div class="reg-box" style="grid-column: span 2;"><span class="reg-name">CLOCK TICKS</span><span class="reg-val" id="reg-clk" style="color: yellow;">0</span></div>
+      </div>
+    </div>
+
+    <!-- Oscilloscope setup-time voltage checks -->
+    <div class="panel-section">
+      <div class="section-title">Осцилограф (Setup-Time Voltage Monitor)</div>
+      <canvas id="osc-canvas"></canvas>
+      <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); margin-top: 8px; display: flex; justify-content: space-between;">
+        <span>Setup Bounds: >1.71V or &lt;0.69V</span>
+        <span id="live-voltage" style="color: yellow;">1.20V</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real-time frame loop data reader -->
+  <script>
+    const iframe = document.getElementById('game-iframe');
+    const oscCanvas = document.getElementById('osc-canvas');
+    const oscCtx = oscCanvas.getContext('2d');
+
+    // Warp Phase
+    function warpPhase(phaseNum) {
+      const win = iframe.contentWindow;
+      if (win && win.GameKernel) {
+        win.GameKernel.setPhase(phaseNum);
+      }
+    }
+
+    // Unlocks Cheat Exploit
+    function cheatUnlock(exploitId) {
+      const win = iframe.contentWindow;
+      if (win && win.SlotsEngine) {
+        win.SlotsEngine.unlock(exploitId);
+      }
+    }
+
+    // Sync monitors
+    function syncRegisters() {
+      const win = iframe.contentWindow;
+      if (win && win.CPU && win.GameKernel) {
+        // Read low-level emulated variables
+        const cpu = win.CPU;
+        const game = win.GameKernel;
+
+        // Sync registers from CPU class
+        cpu.setPC(game.player.x);
+        cpu.tick();
+
+        document.getElementById('reg-pc').innerText = '0x' + cpu.registers.PC.toString(16).toUpperCase().padStart(4, '0');
+        document.getElementById('reg-sp').innerText = '0x' + cpu.registers.SP.toString(16).toUpperCase().padStart(4, '0');
+        document.getElementById('reg-a').innerText = '0x' + cpu.registers.A.toString(16).toUpperCase().padStart(4, '0');
+        document.getElementById('reg-b').innerText = '0x' + cpu.registers.B.toString(16).toUpperCase().padStart(4, '0');
+        document.getElementById('reg-clk').innerText = cpu.registers.CLK;
+
+        // Draw Oscilloscope wave probe
+        drawOscilloscope(game.oscilloscopeVoltage, game.timer);
+      }
+      requestAnimationFrame(syncRegisters);
+    }
+
+    function drawOscilloscope(liveV, timer) {
+      const w = oscCanvas.width = oscCanvas.offsetWidth;
+      const h = oscCanvas.height = oscCanvas.offsetHeight;
+      oscCtx.clearRect(0, 0, w, h);
+
+      // Draw setup limits dashed thresholds
+      oscCtx.strokeStyle = "rgba(255, 0, 0, 0.4)";
+      oscCtx.lineWidth = 1;
+      oscCtx.setLineDash([4, 4]);
+
+      // Upper boundary
+      const topY = h/2 - 40;
+      oscCtx.beginPath(); oscCtx.moveTo(0, topY); oscCtx.lineTo(w, topY); oscCtx.stroke();
+
+      // Bottom boundary
+      const bottomY = h/2 + 40;
+      oscCtx.beginPath(); oscCtx.moveTo(0, bottomY); oscCtx.lineTo(w, bottomY); oscCtx.stroke();
+      oscCtx.setLineDash([]); // reset
+
+      // Live sine wave
+      oscCtx.strokeStyle = "yellow";
+      oscCtx.lineWidth = 2.5;
+      oscCtx.beginPath();
+      for (let x = 0; x < w; x += 4) {
+        const y = h/2 + Math.sin(x * 0.04 + timer * 8) * 35;
+        if (x === 0) oscCtx.moveTo(x, y);
+        else oscCtx.lineTo(x, y);
+      }
+      oscCtx.stroke();
+
+      // Pulse current spot indicator
+      const currentY = h/2 + Math.sin(timer * 8) * 35;
+      oscCtx.fillStyle = "red";
+      oscCtx.beginPath();
+      oscCtx.arc(w - 20, currentY, 4, 0, Math.PI * 2);
+      oscCtx.fill();
+
+      // Print live text
+      document.getElementById('live-voltage').innerText = `${liveV.toFixed(2)}V`;
+      document.getElementById('live-voltage').style.color = (liveV > 1.71 || liveV < 0.69) ? "red" : "yellow";
+    }
+
+    // Startup monitor sync
+    iframe.onload = () => {
+      syncRegisters();
+    };
+  </script>
+</body>
+</html>

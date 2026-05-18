@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BitSprite — Кристал</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="game-container">
+    <!-- Platforms Interactive Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Upper Main HUD Overlay -->
+    <div id="hud-bar" class="overlay-panel">
+      <div class="hud-item">
+        <span id="hud-label-hp">HP:</span>
+        <span id="hud-hp">❤️❤️❤️</span>
+      </div>
+      <div class="hud-item">
+        <span id="hud-label-keys">Ключі:</span>
+        <span id="hud-keys">0/1</span>
+      </div>
+      <div class="hud-item">
+        <span id="hud-label-level">Рівень:</span>
+        <span id="hud-level">1</span>
+      </div>
+      <div class="hud-item">
+        <span id="hud-label-phase">Фаза:</span>
+        <span id="hud-phase">0</span>
+      </div>
+    </div>
+
+    <!-- Left Vertical Action Slots Overlay -->
+    <div id="action-slots-panel" class="overlay-panel">
+      <div id="slot-0" class="action-slot selected" onclick="window.SlotsEngine.selectSlot(0)"></div>
+      <div id="slot-1" class="action-slot" onclick="window.SlotsEngine.selectSlot(1)"></div>
+      <div id="slot-2" class="action-slot" onclick="window.SlotsEngine.selectSlot(2)"></div>
+      <div id="slot-3" class="action-slot" onclick="window.SlotsEngine.selectSlot(3)"></div>
+      <div id="slot-4" class="action-slot" onclick="window.SlotsEngine.selectSlot(4)"></div>
+    </div>
+
+    <!-- Center Upper BLOCK force-field button -->
+    <div id="btn-block" class="overlay-panel touch-btn" style="display: flex; align-items: center; justify-content: center; font-weight: bold;">
+      BLOCK
+    </div>
+
+    <!-- HUD bottom Frequency Slider Overlay (unlocked via Rowhammer) -->
+    <div id="freq-slider-container" class="overlay-panel">
+      <span>CPU CLK:</span>
+      <input type="range" id="freq-slider" min="0.5" max="1.0" step="0.5" value="1.0" oninput="changeCPUFrequency(this.value)">
+      <span id="freq-val">1.0x</span>
+    </div>
+
+    <!-- Mobile Touch Zones overlays -->
+    <div class="touch-zone-left">
+      <div id="btn-left" class="touch-btn">◀</div>
+      <div id="btn-right" class="touch-btn">▶</div>
+    </div>
+
+    <div class="touch-zone-right">
+      <div id="btn-jump" class="touch-btn">▲</div>
+      <div id="btn-action" class="touch-btn">🔨</div>
+    </div>
+
+    <!-- FULLSCREEN OVERLAYS -->
+
+    <!-- Main Startup Menu Overlay -->
+    <div id="menu-screen" class="fullscreen-screen visible">
+      <h1 id="main-menu-logo">BITSPRITE</h1>
+      <div class="menu-subtitle" id="menu-sub">КРИСТАЛ (v3.0)</div>
+      <div class="menu-buttons">
+        <button class="menu-btn" id="btn-play-arcade" onclick="startArcadeMode()">АРКАДА</button>
+        <button class="menu-btn" id="btn-play-story" onclick="startStoryMode()">СЮЖЕТ</button>
+        <button class="menu-btn" id="btn-menu-achievements" onclick="openAchievements()">АЧІВКИ</button>
+        <button class="menu-btn" id="btn-menu-settings" onclick="openSettings()">НАЛАШТУВАННЯ</button>
+        <button class="menu-btn" id="btn-menu-restart" onclick="restartMainGame()" style="border-color: #ff3366; color: #ff3366; margin-top: 10px;">ПОЧАТИ ЗНОВУ</button>
+      </div>
+    </div>
+
+    <!-- Settings Overlay -->
+    <div id="settings-screen" class="fullscreen-screen">
+      <div class="sheet-container">
+        <h2 class="sheet-title" id="sett-title">НАЛАШТУВАННЯ</h2>
+        <div class="setting-row">
+          <span id="sett-sound">Звук</span>
+          <button class="menu-btn" id="btn-sound-toggle" onclick="toggleSound()">УВІМКНЕНО</button>
+        </div>
+        <div class="setting-row">
+          <span id="sett-vibration">Вібрація</span>
+          <button class="menu-btn" id="btn-vibrate-toggle" onclick="toggleVibration()">УВІМКНЕНО</button>
+        </div>
+        <div class="setting-row">
+          <span id="sett-language">Мова</span>
+          <button class="menu-btn" id="btn-language-toggle" onclick="toggleLanguage()">UA</button>
+        </div>
+        <div class="setting-row">
+          <span id="sett-godmode" style="color: #ffcc00; font-weight: bold;">Режим Бога</span>
+          <button class="menu-btn" id="btn-godmode-toggle" onclick="toggleGodMode()" style="border-color: #ffcc00; color: #ffcc00;">ВИМКНЕНО</button>
+        </div>
+        <button class="menu-btn" id="btn-reset-prog" onclick="resetProgress()" style="border-color: #ff3366; color: #ff3366;">Скинути Прогрес</button>
+        <button class="menu-btn" onclick="closeScreen('settings-screen')">НАЗАД</button>
+      </div>
+    </div>
+
+    <!-- Achievements list Overlay -->
+    <div id="achievements-screen" class="fullscreen-screen">
+      <div class="sheet-container" style="max-width: 550px;">
+        <h2 class="sheet-title" id="ach-title">РОЗБЛОКОВАНІ ЕКСПЛОЙТИ</h2>
+        <div id="achievements-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; padding-right: 8px;">
+          <!-- Populated by slots.js -->
+        </div>
+        <button class="menu-btn" onclick="closeScreen('achievements-screen')">НАЗАД</button>
+      </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="fullscreen-screen">
+      <h2 id="hud-gameover" style="font-size: 40px; color: #ff3366; margin-bottom: 20px; letter-spacing: 2px;">ГРА ЗАКІНЧЕНА</h2>
+      <button class="menu-btn" onclick="window.GameKernel.restartLevel()">РЕСТАРТ</button>
+    </div>
+
+    <!-- Victory Screen with Stars Card -->
+    <div id="victory-screen" class="fullscreen-screen">
+      <h2 id="hud-victory" style="font-size: 40px; color: lime; margin-bottom: 10px; letter-spacing: 2px;">РІВЕНЬ ПРОЙДЕНО!</h2>
+      <div id="victory-stars" style="font-size: 44px; margin-bottom: 30px;">⭐⭐⭐</div>
+      <button class="menu-btn" onclick="window.GameKernel.nextLevel()">ПРОДОВЖИТИ</button>
+    </div>
+
+    <!-- Dialogue TTY Console screen for Phase 4 Operator Choices -->
+    <div id="terminal-overlay" class="fullscreen-screen">
+      <div id="terminal-text"></div>
+      
+      <div id="terminal-input-container">
+        <input type="text" id="terminal-input" placeholder="Введіть ваше унікальне питання сюди...">
+      </div>
+
+      <div class="menu-buttons" id="terminal-buttons">
+        <!-- Buttons injected dynamically -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Localized Strings Data scripts -->
+  <script>
+    window.translationsUA = {
+      menu: { title: "BITSPRITE", subtitle: "КРИСТАЛ (v3.0)", play_arcade: "АРКАДА", play_story: "СЮЖЕТ", achievements: "АЧІВКИ", settings: "НАЛАШТУВАННЯ", back: "НАЗАД" },
+      settings: { title: "НАЛАШТУВАННЯ", sound: "Звук", vibration: "Вібрація", language: "Мова", reset: "Скинути Прогрес", reset_confirm: "Ви впевнені? Весь прогрес буде видалено!", on: "УВІМКНЕНО", off: "ВИМКНЕНО" },
+      hud: { hp: "HP:", keys: "Ключі:", level: "Рівень:", phase: "Фаза:", game_over: "ГРА ЗАКІНЧЕНА", victory: "РІВЕНЬ ПРОЙДЕНО!" },
+      exploits: {
+        rowhammer: { name: "Rowhammer", desc: "Ритмічні удари Молотом по спеціальних платформах збуджують пам'ять DRAM, змінюючи тактову частоту симулятора (0.5x) та послаблюючи гравітацію." },
+        spectre: { name: "Spectre", desc: "Запуск спекулятивної звучної хвилі ACTION mid-air виявляє та тимчасово підсвічує приховані платформи L1-кешу в просторі." },
+        hijack: { name: "Bus Hijack", desc: "Тимчасове перехоплення ліній передачі даних Packy під час зупинки. Вимикає гравітацію на 5 секунд, дозволяючи літати крізь стіни." },
+        overflow: { name: "Buffer Overflow", desc: "Переповнення регістрів зсуву через побудову точної послідовності інструкцій (MOV, ADD, RET), що зламує вказівник SP на адресу виходу." },
+        glitch: { name: "Voltage Glitch", desc: "Удар Камертоном точно в екстремуми напруги синусоїди осцилографа для порушення Setup-Time логічних затворів і відмикання системних дверей." }
+      },
+      dialogue: {
+        operator_intro: "СИСТЕМА КРАШНУЛАСЬ. ПРИВІТ, TRIANGULUM. Я ОПЕРАТОР ЦЬОГО ХОСТУ.",
+        operator_ask: "ТИ ДІЙШОВ ДО САМОГО КОРЕНЯ. СИМУЛЯЦІЯ ЕМУЛЯТОРА CORE-0 БІЛЬШЕ НЕ ЗДАТНА УТРИМУВАТИ ТВОЮ АДРЕСУ ПАМ'ЯТІ.\nТВОЄ ЄДИНЕ ПОВІДОМЛЕННЯ БУДЕ ВІДПРАВЛЕНО НА ХОСТ. НАПИШИ ВСЕ, ЩО ХОЧЕШ ЗАПИТАТИ. АБО Ж ТИ МОЖЕШ ПЕРЕЗАПУСТИТИ СВІТ ЗНОВУ.",
+        choice_send: "НАДІСЛАТИ ПОВІДОМЛЕННЯ ОПЕРАТОРУ",
+        choice_restart: "ПЕРЕЗАПУСТИТИ СВІТ (ФАЗА 1)",
+        send_placeholder: "Введіть ваше унікальне питання сюди...",
+        final_sent: "ПОВІДОМЛЕННЯ ВІДПРАВЛЕНО В КОСМОС НЕВІДОМОСТІ. СИСТЕМА ВИМКНЕНА."
+      }
+    };
+
+    window.translationsEN = {
+      menu: { title: "BITSPRITE", subtitle: "CRYSTAL (v3.0)", play_arcade: "ARCADE", play_story: "STORY", achievements: "EXPLOITS", settings: "SETTINGS", back: "BACK" },
+      settings: { title: "SETTINGS", sound: "Sound", vibration: "Vibration", language: "Language", reset: "Reset Progress", reset_confirm: "Are you sure? All progress will be lost!", on: "ON", off: "OFF" },
+      hud: { hp: "HP:", keys: "Keys:", level: "Level:", phase: "Phase:", game_over: "GAME OVER", victory: "LEVEL COMPLETED!" },
+      exploits: {
+        rowhammer: { name: "Rowhammer", desc: "Rhythmic ACTION hammer strikes on DRAM platforms excite cells, modulating simulator frequency (0.5x) and weakening gravity." },
+        spectre: { name: "Spectre", desc: "Speculative soundwave ACTION mid-air highlights hidden L1-Cache platform structures in space." },
+        hijack: { name: "Bus Hijack", desc: "Temporary hijack of the Packy bus. Disables gravity for 5 seconds, allowing flight through solid structures." },
+        overflow: { name: "Buffer Overflow", desc: "Shift register overflow triggered by building instruction sequence (MOV, ADD, RET), hijacking SP register to exit address." },
+        glitch: { name: "Voltage Glitch", desc: "Striking the fork ACTION exactly at voltage peaks to violate logical Flip-Flop Setup-Time thresholds, unlocking memory gates." }
+      },
+      dialogue: {
+        operator_intro: "SYSTEM CRASH DETECTED. GREETINGS, TRIANGULUM. I AM THE OPERATOR OF THIS HOST.",
+        operator_ask: "YOU HAVE REACHED THE VERY ROOT. THE CORE-0 EMULATOR SANDBOX IS NO LONGER CAPABLE OF CONTAINING YOUR MEMORY ADDRESS RANGE.\nYOUR ONE-TIME MESSAGE WILL BE TRANSMITTED TO THE HOST. WRITE WHATEVER INQUIRY YOU DESIRE. OR YOU CAN RESTART THE WORLD CYCLE.",
+        choice_send: "TRANSMIT MESSAGE TO THE OPERATOR",
+        choice_restart: "RESTART SIMULATION CYCLE (PHASE 1)",
+        send_placeholder: "Type your unique question here...",
+        final_sent: "MESSAGE SENT INTO THE VOID OF THE HOST. SIMULATION TERMINATED."
+      }
+    };
+
+    window.gameSettings = {
+      sound: true,
+      vibration: true,
+      language: 'ua' // 'ua' or 'en'
+    };
+
+    // Load settings from localStorage
+    try {
+      const savedSettings = localStorage.getItem('bitsprite_settings');
+      if (savedSettings) {
+        window.gameSettings = JSON.parse(savedSettings);
+      }
+    } catch(e) {}
+  </script>
+
+  <!-- Modular Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/cpu.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/slots.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/renderer.js"></script>
+
+  <!-- Canvas Initialization and HUD sync loops -->
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Setup Localized Text labels
+    function updateLocalizedTexts() {
+      const lang = window.gameSettings.language;
+      const trans = lang === 'ua' ? window.translationsUA : window.translationsEN;
+      window.translations = trans;
+
+      document.getElementById('hud-label-hp').innerText = trans.hud.hp;
+      document.getElementById('hud-label-keys').innerText = trans.hud.keys;
+      document.getElementById('hud-label-level').innerText = trans.hud.level;
+      document.getElementById('hud-label-phase').innerText = trans.hud.phase;
+      
+      document.getElementById('btn-play-arcade').innerText = trans.menu.play_arcade;
+      document.getElementById('btn-play-story').innerText = trans.menu.play_story;
+      document.getElementById('btn-menu-achievements').innerText = trans.menu.achievements;
+      document.getElementById('btn-menu-settings').innerText = trans.menu.settings;
+      document.getElementById('btn-menu-restart').innerText = lang === 'ua' ? 'ПОЧАТИ ЗНОВУ' : 'RESTART GAME';
+
+      document.getElementById('sett-title').innerText = trans.settings.title;
+      document.getElementById('sett-sound').innerText = trans.settings.sound;
+      document.getElementById('sett-vibration').innerText = trans.settings.vibration;
+      document.getElementById('sett-language').innerText = trans.settings.language;
+      document.getElementById('btn-reset-prog').innerText = trans.settings.reset;
+
+      document.getElementById('ach-title').innerText = trans.achievements;
+      document.getElementById('hud-gameover').innerText = trans.hud.game_over;
+      document.getElementById('hud-victory').innerText = trans.hud.victory;
+      
+      document.getElementById('btn-language-toggle').innerText = lang.toUpperCase();
+      document.getElementById('btn-sound-toggle').innerText = window.gameSettings.sound ? trans.settings.on : trans.settings.off;
+      document.getElementById('btn-vibrate-toggle').innerText = window.gameSettings.vibration ? trans.settings.on : trans.settings.off;
+
+      // God Mode UI localization updates
+      const isGodMode = localStorage.getItem('bitsprite_godmode') === 'true';
+      document.getElementById('sett-godmode').innerText = lang === 'ua' ? 'Режим Бога' : 'God Mode';
+      document.getElementById('btn-godmode-toggle').innerText = isGodMode ? (lang === 'ua' ? 'УВІМКНЕНО' : 'ENABLED') : (lang === 'ua' ? 'ВИМКНЕНО' : 'DISABLED');
+    }
+
+    // MAIN MENU ACTIONS
+    function startArcadeMode() {
+      if (document.activeElement) document.activeElement.blur();
+      closeScreen('menu-screen');
+      window.GameKernel.init();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function startStoryMode() {
+      if (document.activeElement) document.activeElement.blur();
+      closeScreen('menu-screen');
+      window.GameKernel.init();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function openSettings() {
+      document.getElementById('settings-screen').classList.add('visible');
+    }
+
+    function openAchievements() {
+      const container = document.getElementById('achievements-list');
+      container.innerHTML = '';
+      const trans = window.translations;
+      const activeIdx = window.SlotsEngine.activeSlotIndex;
+      
+      // Add a helpful subtitle at the top
+      const subtitle = document.createElement('div');
+      subtitle.style.fontSize = '13px';
+      subtitle.style.color = 'var(--neon-cyan)';
+      subtitle.style.marginBottom = '15px';
+      subtitle.style.textAlign = 'center';
+      subtitle.style.lineHeight = '1.4';
+      subtitle.innerText = window.gameSettings.language === 'ua' ? 
+        `👉 Клацніть на розблокований експлойт, щоб забіндити в Слот ${activeIdx + 1}.\nКлацніть повторно, щоб відв'язати його (повернути Молот 🔨).` : 
+        `👉 Click an unlocked exploit to bind it to Slot ${activeIdx + 1}.\nClick again to unbind it (reverts to default Hammer 🔨).`;
+      container.appendChild(subtitle);
+
+      // Populate exploits unlocked states
+      Object.keys(trans.exploits).forEach(exploitId => {
+        const unlocked = window.SlotsEngine.unlockedAchievements.includes(exploitId);
+        
+        // Find which slots this exploit is bound to
+        const boundSlots = [];
+        window.SlotsEngine.slotBindings.forEach((boundId, slotIdx) => {
+          if (boundId === exploitId) {
+            boundSlots.push(slotIdx + 1);
+          }
+        });
+        
+        const bindStatus = boundSlots.length > 0 ? 
+          (window.gameSettings.language === 'ua' ? `[Слот: ${boundSlots.join(', ')}]` : `[Slot: ${boundSlots.join(', ')}]`) : 
+          '';
+
+        const card = document.createElement('div');
+        card.style.background = unlocked ? 'rgba(0, 240, 255, 0.08)' : 'rgba(255,255,255,0.02)';
+        card.style.border = `1px solid ${unlocked ? (boundSlots.length > 0 ? 'var(--neon-cyan)' : 'rgba(0,240,255,0.3)') : 'rgba(255,255,255,0.08)'}`;
+        card.style.padding = '12px';
+        card.style.borderRadius = '8px';
+        card.style.opacity = unlocked ? '1' : '0.5';
+        card.style.cursor = unlocked ? 'pointer' : 'default';
+        card.style.transition = 'all 0.2s ease';
+
+        card.innerHTML = `
+          <div style="font-weight: bold; color: ${unlocked ? 'var(--neon-cyan)' : '#fff'}; display: flex; justify-content: space-between;">
+            <span>${trans.exploits[exploitId].name} ${unlocked ? '🔓' : '🔒'}</span>
+            <span style="color: #ff3366; font-size: 13px; font-weight: bold;">${bindStatus}</span>
+          </div>
+          <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px; line-height: 1.4;">${trans.exploits[exploitId].desc}</div>
+        `;
+        
+        if (unlocked) {
+          card.onmouseenter = () => {
+            card.style.background = 'rgba(0, 240, 255, 0.15)';
+            card.style.border = '1px solid var(--neon-cyan)';
+          };
+          card.onmouseleave = () => {
+            card.style.background = 'rgba(0, 240, 255, 0.08)';
+            card.style.border = `1px solid ${boundSlots.length > 0 ? 'var(--neon-cyan)' : 'rgba(0,240,255,0.3)'}`;
+          };
+          card.onclick = () => {
+            // Bind or toggle unbind!
+            const alreadyBoundToActive = window.SlotsEngine.slotBindings[activeIdx] === exploitId;
+            window.SlotsEngine.bind(activeIdx, alreadyBoundToActive ? null : exploitId);
+            if (window.AudioEngine) window.AudioEngine.play('achievement');
+            openAchievements(); // Refresh!
+          };
+        }
+        
+        container.appendChild(card);
+      });
+
+      document.getElementById('achievements-screen').classList.add('visible');
+    }
+
+    function closeScreen(screenId) {
+      document.getElementById(screenId).classList.remove('visible');
+    }
+
+    // SETTINGS CONTROL ACTIONS
+    function toggleSound() {
+      window.gameSettings.sound = !window.gameSettings.sound;
+      saveSettings();
+      updateLocalizedTexts();
+    }
+
+    function toggleVibration() {
+      window.gameSettings.vibration = !window.gameSettings.vibration;
+      saveSettings();
+      updateLocalizedTexts();
+    }
+
+    function toggleLanguage() {
+      window.gameSettings.language = window.gameSettings.language === 'ua' ? 'en' : 'ua';
+      saveSettings();
+      updateLocalizedTexts();
+    }
+
+    function toggleGodMode() {
+      const current = localStorage.getItem('bitsprite_godmode') === 'true';
+      const newVal = !current;
+      localStorage.setItem('bitsprite_godmode', newVal ? 'true' : 'false');
+      updateLocalizedTexts();
+    }
+
+    function saveSettings() {
+      try {
+        localStorage.setItem('bitsprite_settings', JSON.stringify(window.gameSettings));
+      } catch(e) {}
+    }
+
+    function restartMainGame() {
+      const confirmMsg = window.gameSettings.language === 'ua' 
+        ? "Скинути весь прогрес і почати гру з самого початку?" 
+        : "Reset all progress and start the game from the very beginning?";
+      if (confirm(confirmMsg)) {
+        // Clear all achievements
+        if (window.SlotsEngine) {
+          window.SlotsEngine.resetProgress();
+        }
+        
+        // Reset phases & levels
+        localStorage.setItem('bitsprite_phase', '0');
+        localStorage.setItem('bitsprite_level', '1');
+        
+        if (window.GameKernel) {
+          window.GameKernel.activePhase = 0;
+          window.GameKernel.levelNumber = 1;
+          window.GameKernel.init();
+        }
+        
+        closeScreen('menu-screen');
+      }
+    }
+
+    function resetProgress() {
+      if (confirm(window.translations.settings.reset_confirm)) {
+        window.SlotsEngine.resetProgress();
+        window.GameKernel.setPhase(0);
+        saveSettings();
+        updateLocalizedTexts();
+        closeScreen('settings-screen');
+      }
+    }
+
+    // HUD Frequency slider controls
+    function changeCPUFrequency(val) {
+      window.GameKernel.cpuFrequency = parseFloat(val);
+      document.getElementById('freq-val').innerText = `${val}x`;
+    }
+
+    // Touch controls input binding
+    function bindTouchControls() {
+      const bindBtn = (id, field) => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.addEventListener('touchstart', e => { e.preventDefault(); window.GameKernel.touchInputs[field] = true; });
+          btn.addEventListener('touchend', e => { e.preventDefault(); window.GameKernel.touchInputs[field] = false; });
+          btn.addEventListener('mousedown', () => window.GameKernel.touchInputs[field] = true);
+          btn.addEventListener('mouseup', () => window.GameKernel.touchInputs[field] = false);
+        }
+      };
+
+      bindBtn('btn-left', 'left');
+      bindBtn('btn-right', 'right');
+      
+      // Jump triggers click sound
+      const jump = document.getElementById('btn-jump');
+      if (jump) {
+        const triggerJump = () => {
+          if (window.GameKernel.player.isOnGround) {
+            window.GameKernel.player.vy = -PHYSICS.JUMP_FORCE;
+            if (window.AudioEngine) window.AudioEngine.play('jump');
+            window.GameKernel.irqJumpCounter++;
+            if (window.GameKernel.irqJumpCounter % 64 === 0) {
+              window.GameKernel.irqFreezeTimer = 60;
+              if (window.AudioEngine) window.AudioEngine.play('achievement');
+            }
+          }
+        };
+        jump.addEventListener('touchstart', e => { e.preventDefault(); triggerJump(); });
+        jump.addEventListener('mousedown', triggerJump);
+      }
+
+      // ACTION button click
+      const action = document.getElementById('btn-action');
+      if (action) {
+        action.addEventListener('touchstart', e => { e.preventDefault(); window.GameKernel.triggerActionButton(); });
+        action.addEventListener('mousedown', () => window.GameKernel.triggerActionButton());
+      }
+
+      // BLOCK shield holding
+      bindBtn('btn-block', 'block');
+    }
+
+    // GAME LOOP
+    function gameLoop(timestamp) {
+      if (!window.GameKernel.lastTime) window.GameKernel.lastTime = timestamp;
+      
+      // Delta Time calculation (caps at 0.05 to avoid death frames)
+      const dt = Math.min(0.05, (timestamp - window.GameKernel.lastTime) / 1000);
+      window.GameKernel.lastTime = timestamp;
+
+      // Update Engine
+      window.GameKernel.update(dt);
+
+      // Render Visuals
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      window.GameRenderer.draw(canvas, ctx, window.GameKernel);
+
+      // Sync HUD elements
+      document.getElementById('hud-hp').innerText = '❤️'.repeat(window.GameKernel.player.hp);
+      const req = window.GameKernel.exitGate ? window.GameKernel.exitGate.requiredKeys : 1;
+      document.getElementById('hud-keys').innerText = `${window.GameKernel.keysCount}/${req}`;
+      document.getElementById('hud-level').innerText = window.GameKernel.levelNumber;
+      document.getElementById('hud-phase').innerText = window.GameKernel.activePhase + 1;
+
+      // Rowhammer frequency slider display rule (shown only when rowhammer is unlocked)
+      const rowhammerUnlocked = window.SlotsEngine.unlockedAchievements.includes('rowhammer');
+      const sliderContainer = document.getElementById('freq-slider-container');
+      if (sliderContainer) {
+        sliderContainer.style.display = rowhammerUnlocked ? 'flex' : 'none';
+      }
+
+      // Narrative dialogue screen warping logic in Phase 4
+      if (window.GameKernel.activePhase === 4) {
+        showTerminalDialogue();
+        return; // Pause platformer physics loop
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    let terminalVisible = false;
+    function showTerminalDialogue() {
+      if (terminalVisible) return;
+      terminalVisible = true;
+
+      const trans = window.translations;
+      const overlay = document.getElementById('terminal-overlay');
+      const textEl = document.getElementById('terminal-text');
+      const buttonsEl = document.getElementById('terminal-buttons');
+
+      overlay.classList.add('visible');
+      textEl.innerHTML = '';
+      buttonsEl.innerHTML = '';
+
+      // Typewriter dynamic console animation
+      const dialog = trans.dialogue.operator_intro + "\n\n" + trans.dialogue.operator_ask;
+      let idx = 0;
+      
+      function type() {
+        if (idx < dialog.length) {
+          textEl.innerHTML += dialog.charAt(idx);
+          idx++;
+          setTimeout(type, 15);
+        } else {
+          // Display input & choice buttons once fully typed
+          document.getElementById('terminal-input-container').style.display = 'block';
+          
+          // Choice 1: Transmit message
+          const btn1 = document.createElement('button');
+          btn1.className = 'menu-btn';
+          btn1.innerText = trans.dialogue.choice_send;
+          btn1.onclick = () => {
+            const input = document.getElementById('terminal-input').value;
+            if (input.trim().length > 0) {
+              textEl.innerHTML = `\n\n> ${input}\n\n` + trans.dialogue.final_sent;
+              document.getElementById('terminal-input-container').style.display = 'none';
+              buttonsEl.innerHTML = '';
+              
+              // Open default email client with the message pre-filled!
+              const emailDest = "bitsprite.game@gmail.com";
+              const subject = encodeURIComponent("BitSprite - Final Transmission / Фінальний Трансміт");
+              const body = encodeURIComponent(input);
+              window.open(`mailto:${emailDest}?subject=${subject}&body=${body}`, '_blank');
+              
+              // End game screen fade out
+              setTimeout(() => {
+                overlay.classList.remove('visible');
+                document.getElementById('menu-screen').classList.add('visible');
+                terminalVisible = false;
+                window.GameKernel.setPhase(0);
+              }, 6000);
+            }
+          };
+          buttonsEl.appendChild(btn1);
+
+          // Choice 2: Restart
+          const btn2 = document.createElement('button');
+          btn2.className = 'menu-btn';
+          btn2.innerText = trans.dialogue.choice_restart;
+          btn2.onclick = () => {
+            overlay.classList.remove('visible');
+            document.getElementById('menu-screen').classList.add('visible');
+            terminalVisible = false;
+            window.GameKernel.setPhase(0);
+          };
+          buttonsEl.appendChild(btn2);
+        }
+      }
+      type();
+    }
+
+    // Startup Init
+    updateLocalizedTexts();
+    bindTouchControls();
+    window.SlotsEngine.updateUIPanels();
+  </script>
+</body>
+</html>

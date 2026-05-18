@@ -1,0 +1,62 @@
+{
+  "menu": {
+    "title": "BITSPRITE",
+    "subtitle": "CRYSTAL (v3.0)",
+    "play_arcade": "ARCADE",
+    "play_story": "STORY",
+    "achievements": "EXPLOITS",
+    "settings": "SETTINGS",
+    "back": "BACK"
+  },
+  "settings": {
+    "title": "SETTINGS",
+    "sound": "Sound",
+    "vibration": "Vibration",
+    "language": "Language",
+    "reset": "Reset Progress",
+    "reset_confirm": "Are you sure? All unlock progress will be lost!",
+    "on": "ON",
+    "off": "OFF"
+  },
+  "hud": {
+    "hp": "HP",
+    "level": "Level",
+    "keys": "Keys",
+    "time": "Time",
+    "stars": "Stars",
+    "phase": "Phase",
+    "game_over": "GAME OVER",
+    "victory": "LEVEL COMPLETED!",
+    "press_space": "Press ACTION or jump to restart"
+  },
+  "exploits": {
+    "rowhammer": {
+      "name": "Rowhammer",
+      "desc": "Rhythmic ACTION hammer strikes on specific platforms excite DRAM cells, modulating simulation clock frequency (0.5x) and weakening gravity."
+    },
+    "spectre": {
+      "name": "Spectre",
+      "desc": "Triggering a speculative soundwave ACTION mid-air speculative-execution highlights hidden L1-Cache platform structures in space."
+    },
+    "hijack": {
+      "name": "Bus Hijack",
+      "desc": "Temporary hijack of the Packy bus transmission lines during a freeze-frame. Disables gravity for 5 seconds, allowing flight through solid structures."
+    },
+    "overflow": {
+      "name": "Buffer Overflow",
+      "desc": "Shift register overflow triggered by building the precise vertical instruction sequence (MOV, ADD, RET), hijacking the SP register to point to the exit address."
+    },
+    "glitch": {
+      "name": "Voltage Glitch",
+      "desc": "Striking the fork ACTION exactly at oscilloscope voltage peaks to violate logical Flip-Flop Setup-Time thresholds, unlocking restricted memory gates."
+    }
+  },
+  "dialogue": {
+    "operator_intro": "SYSTEM CRASH DETECTED. GREETINGS, TRIANGULUM. I AM THE OPERATOR OF THIS HOST.",
+    "operator_ask": "YOU HAVE REACHED THE VERY ROOT. THE CORE-0 EMULATOR SANDBOX IS NO LONGER CAPABLE OF CONTAINING YOUR MEMORY ADDRESS RANGE.\nYOUR ONE-TIME MESSAGE WILL BE TRANSMITTED TO THE HOST. WRITE WHATEVER INQUIRY YOU DESIRE. OR YOU CAN RESTART THE WORLD CYCLE.",
+    "choice_send": "TRANSMIT MESSAGE TO THE OPERATOR",
+    "choice_restart": "RESTART SIMULATION CYCLE (PHASE 0)",
+    "send_placeholder": "Type your unique question here...",
+    "final_sent": "MESSAGE SENT INTO THE VOID OF THE HOST. SIMULATION TERMINATED."
+  }
+}
