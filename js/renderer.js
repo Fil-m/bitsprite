@@ -16,7 +16,9 @@ class BitSpriteRenderer {
 
     // Calculate camera smooth tracking, adjusting viewport dimensions by zoom factor
     const cameraX = game.player.x - (w / zoom) / 2;
-    const cameraY = Math.max(-800, Math.min(200, game.player.y - (h / zoom) / 2 - 100));
+    // Shift camera down slightly (+40 instead of -100) to push the player and standing platforms
+    // upward, keeping them completely clear of the bottom-center action slots panel!
+    const cameraY = Math.max(-800, Math.min(200, game.player.y - (h / zoom) / 2 + 40));
 
     // DRAW PHASE BACKGROUNDS
     this.drawBackground(ctx, w, h, game);
