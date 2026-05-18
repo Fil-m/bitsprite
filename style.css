@@ -521,3 +521,25 @@ canvas {
     font-size: 18px;
   }
 }
+
+/* Victory screen height adjustments for landscape mobile viewports */
+@media (max-height: 550px) {
+  #victory-screen {
+    justify-content: flex-start;
+    overflow-y: auto;
+    padding: 15px 0;
+  }
+  #hud-victory {
+    font-size: 26px !important;
+    margin-bottom: 5px !important;
+  }
+  #victory-stars {
+    font-size: 28px !important;
+    margin-bottom: 10px !important;
+  }
+  #victory-leaderboard-container {
+    margin-bottom: 15px !important;
+    padding: 10px !important;
+    width: 95% !important;
+  }
+}
