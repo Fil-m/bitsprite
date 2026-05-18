@@ -451,22 +451,116 @@ class BitSpriteRenderer {
     ctx.save();
     game.enemies.forEach(enemy => {
       if (enemy.type === 'aluPatrol') {
-        // Red bouncing ALUPatrol operator shape
-        ctx.fillStyle = "#d9534f";
+        const cx = enemy.x + 16;
+        const cy = enemy.y + 16;
+        const r = 16;
+
+        ctx.save();
+
+        // Fox glowing neon shadow
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "#ff5500";
+
+        // Draw Ears (pointed fox ears)
+        ctx.fillStyle = "#e05a10"; // Fox orange
         ctx.beginPath();
-        ctx.arc(enemy.x + 16, enemy.y + 16, 16, 0, Math.PI * 2);
+        // Left Ear
+        ctx.moveTo(cx - 14, cy - 6);
+        ctx.lineTo(cx - 16, cy - 24);
+        ctx.lineTo(cx - 4, cy - 12);
+        ctx.closePath();
         ctx.fill();
 
-        ctx.strokeStyle = "red";
+        // Right Ear
+        ctx.beginPath();
+        ctx.moveTo(cx + 14, cy - 6);
+        ctx.lineTo(cx + 16, cy - 24);
+        ctx.lineTo(cx + 4, cy - 12);
+        ctx.closePath();
+        ctx.fill();
+
+        // Inner Ears (white/pinkish)
+        ctx.fillStyle = "#ffccb3";
+        ctx.beginPath();
+        ctx.moveTo(cx - 12, cy - 8);
+        ctx.lineTo(cx - 13, cy - 20);
+        ctx.lineTo(cx - 6, cy - 12);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(cx + 12, cy - 8);
+        ctx.lineTo(cx + 13, cy - 20);
+        ctx.lineTo(cx + 6, cy - 12);
+        ctx.closePath();
+        ctx.fill();
+
+        // Main Fox Face Circle
+        ctx.fillStyle = "#ff6600"; // Orange
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#ff3300";
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // Inner operator symbol
-        ctx.fillStyle = "#fff";
-        ctx.font = "bold 18px Courier New";
+        // White cheeks
+        ctx.fillStyle = "#fff5ee";
+        ctx.beginPath();
+        // Left cheek
+        ctx.moveTo(cx - 16, cy);
+        ctx.quadraticCurveTo(cx - 14, cy + 12, cx - 4, cy + 14);
+        ctx.lineTo(cx, cy + 6);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        // Right cheek
+        ctx.moveTo(cx + 16, cy);
+        ctx.quadraticCurveTo(cx + 14, cy + 12, cx + 4, cy + 14);
+        ctx.lineTo(cx, cy + 6);
+        ctx.closePath();
+        ctx.fill();
+
+        // Fierce glowing cybernetic yellow eyes
+        ctx.fillStyle = "#ccff00";
+        ctx.shadowColor = "#ccff00";
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        // Left eye (slanted)
+        ctx.moveTo(cx - 10, cy - 4);
+        ctx.lineTo(cx - 3, cy - 1);
+        ctx.lineTo(cx - 8, cy + 1);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        // Right eye (slanted)
+        ctx.moveTo(cx + 10, cy - 4);
+        ctx.lineTo(cx + 3, cy - 1);
+        ctx.lineTo(cx + 8, cy + 1);
+        ctx.closePath();
+        ctx.fill();
+
+        // Small black nose
+        ctx.fillStyle = "#111";
+        ctx.shadowBlur = 0; // reset eye shadow
+        ctx.beginPath();
+        ctx.moveTo(cx - 2, cy + 10);
+        ctx.lineTo(cx + 2, cy + 10);
+        ctx.lineTo(cx, cy + 13);
+        ctx.closePath();
+        ctx.fill();
+
+        // Subtle "+" symbol on forehead to maintain ALU patrol identity
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 11px Courier New";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("+", enemy.x + 16, enemy.y + 16);
+        ctx.fillText("+", cx, cy - 7);
+
+        ctx.restore();
       }
     });
     ctx.restore();
@@ -477,19 +571,67 @@ class BitSpriteRenderer {
     const gc = game.gcPatrol;
 
     ctx.save();
-    
-    // Draw the body (dark-gray futuristic monolit cube)
+
+    // 1. Draw Wolf Ears at the top of the dark gray square body
+    ctx.fillStyle = "#1e2022"; // Dark grey wolf body
+    ctx.strokeStyle = "#4a4e5a";
+    ctx.lineWidth = 2.5;
+
+    // Left Ear
+    ctx.beginPath();
+    ctx.moveTo(gc.x, gc.y);
+    ctx.lineTo(gc.x + 6, gc.y - 12);
+    ctx.lineTo(gc.x + 16, gc.y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Right Ear
+    ctx.beginPath();
+    ctx.moveTo(gc.x + gc.w - 16, gc.y);
+    ctx.lineTo(gc.x + gc.w - 6, gc.y - 12);
+    ctx.lineTo(gc.x + gc.w, gc.y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Inner Ears (dark crimson)
+    ctx.fillStyle = "#661a29";
+    ctx.beginPath();
+    ctx.moveTo(gc.x + 3, gc.y);
+    ctx.lineTo(gc.x + 6, gc.y - 8);
+    ctx.lineTo(gc.x + 12, gc.y);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(gc.x + gc.w - 12, gc.y);
+    ctx.lineTo(gc.x + gc.w - 6, gc.y - 8);
+    ctx.lineTo(gc.x + gc.w - 3, gc.y);
+    ctx.closePath();
+    ctx.fill();
+
+    // 2. Draw Main Wolf Face Square Body
     ctx.fillStyle = "#1e2022";
     ctx.strokeStyle = "#4a4e5a";
     ctx.lineWidth = 3;
     ctx.shadowBlur = 8;
     ctx.shadowColor = "#000";
-
     ctx.fillRect(gc.x, gc.y, gc.w, gc.h);
     ctx.strokeRect(gc.x, gc.y, gc.w, gc.h);
 
-    // If paused, draw neon pink/red glowing pause boundaries
+    // 3. Draw Wolf Muzzle / Snout at the bottom
+    ctx.fillStyle = "#0f1011"; // Very dark charcoal nose block
+    ctx.beginPath();
+    ctx.moveTo(gc.x + 12, gc.y + 24);
+    ctx.lineTo(gc.x + 28, gc.y + 24);
+    ctx.lineTo(gc.x + gc.w/2, gc.y + 36);
+    ctx.closePath();
+    ctx.fill();
+
+    // 4. Draw fierce cybernetic Wolf Eyes
     if (gc.pauseTimer > 0) {
+      // If paused, draw neon pink/red glowing pause boundaries
       ctx.strokeStyle = "#ff007f";
       ctx.shadowColor = "#ff007f";
       ctx.shadowBlur = 15;
@@ -501,15 +643,34 @@ class BitSpriteRenderer {
       ctx.textAlign = "center";
       ctx.fillText("GC_PAUSED", gc.x + gc.w/2, gc.y - 12);
     } else {
-      // Normal state: Glowing red scanning eye!
+      // Normal state: Glowing red slanted Wolf eyes!
       ctx.fillStyle = "#ff0055";
       ctx.shadowColor = "#ff0055";
       ctx.shadowBlur = 12;
+
+      // Left Eye
       ctx.beginPath();
-      // Eye sweeps/pulses left and right
-      const eyeOffset = Math.sin(game.timer * 6) * 8;
-      ctx.arc(gc.x + gc.w/2 + eyeOffset, gc.y + gc.h/2, 6, 0, Math.PI * 2);
+      ctx.moveTo(gc.x + 6, gc.y + 11);
+      ctx.lineTo(gc.x + 16, gc.y + 16);
+      ctx.lineTo(gc.x + 6, gc.y + 17);
+      ctx.closePath();
       ctx.fill();
+
+      // Right Eye
+      ctx.beginPath();
+      ctx.moveTo(gc.x + gc.w - 6, gc.y + 11);
+      ctx.lineTo(gc.x + gc.w - 16, gc.y + 16);
+      ctx.lineTo(gc.x + gc.w - 6, gc.y + 17);
+      ctx.closePath();
+      ctx.fill();
+
+      // Muzzle line detail
+      ctx.strokeStyle = "#ff0055";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(gc.x + gc.w/2, gc.y + 24);
+      ctx.lineTo(gc.x + gc.w/2, gc.y + 30);
+      ctx.stroke();
     }
 
     ctx.restore();
@@ -596,23 +757,89 @@ class BitSpriteRenderer {
     if (game.isHijackActive) playerColor = "hsl(300, 100%, 60%)"; // Pink hijacked flight
     if (p.isShieldActive) playerColor = "hsl(60, 100%, 50%)"; // Yellow shield
 
-    ctx.fillStyle = playerColor;
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = playerColor;
+    if (game.activePhase === 0) {
+      // Phase 0: Cute traditional Kolobok character (КАБАЛОК) with 3D sphere gradient
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "#ffa500";
 
-    // Draw Triangle
-    ctx.beginPath();
-    ctx.moveTo(0, -16);
-    ctx.lineTo(-16, 16);
-    ctx.lineTo(16, 16);
-    ctx.closePath();
-    ctx.fill();
+      let grad = ctx.createRadialGradient(-4, -4, 2, 0, 0, 16);
+      grad.addColorStop(0, "#ffe066");
+      grad.addColorStop(0.7, "#ffa500");
+      grad.addColorStop(1, "#d47a00");
+      ctx.fillStyle = grad;
 
-    // Inner Program Counter light core
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.arc(0, 4, 4, 0, Math.PI * 2);
-    ctx.fill();
+      // Draw Sphere Circle
+      ctx.beginPath();
+      ctx.arc(0, 0, 16, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Add Expressive Eyes
+      ctx.shadowBlur = 0; // reset eyes shadow
+      ctx.fillStyle = "#111"; // black pupil
+      
+      // Left eye pupil
+      ctx.beginPath();
+      ctx.arc(-5, -3, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Right eye pupil
+      ctx.beginPath();
+      ctx.arc(5, -3, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Left eye highlight
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(-6, -4, 0.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Right eye highlight
+      ctx.beginPath();
+      ctx.arc(4, -4, 0.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Happy Smile
+      ctx.strokeStyle = "#8b0000";
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.arc(0, 3, 6, 0.1 * Math.PI, 0.9 * Math.PI); // smile curve
+      ctx.stroke();
+
+      // Rosy cheeks (little pink blush ovals)
+      ctx.fillStyle = "rgba(255, 51, 102, 0.4)";
+      ctx.beginPath();
+      ctx.arc(-10, 3, 2.5, 0, Math.PI * 2); // left cheek
+      ctx.arc(10, 3, 2.5, 0, Math.PI * 2); // right cheek
+      ctx.fill();
+
+    } else {
+      // Phase 1+: Futuristic glowing cyber-circle
+      ctx.fillStyle = playerColor;
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = playerColor;
+
+      // Draw Glowing outer circle
+      ctx.beginPath();
+      ctx.arc(0, 0, 16, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Inner program counter holographic details
+      ctx.save();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, 9, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Core white light
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(0, 0, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
 
     // Draw visual neon hammer strike swing arc
     if (p.strikeTimer > 0) {
