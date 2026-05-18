@@ -125,33 +125,40 @@ class BitSpriteRenderer {
   }
 
   drawParallaxClouds(ctx, camX, camY, game) {
+    const w = ctx.canvas.width;
+    const h = ctx.canvas.height;
+
     // Dynamic rolling green / olive pasture hills
     const hillsColor = game.activePhase === 0 ? "hsl(120, 65%, 45%)" : "hsl(120, 35%, 25%)";
     const bgHillsColor = game.activePhase === 0 ? "hsl(120, 50%, 38%)" : "hsl(120, 25%, 18%)";
 
     ctx.save();
     
+    const startX = camX - 200;
+    const endX = camX + w + 200;
+    const bottomY = camY + h + 200;
+    
     // Background far hills
     ctx.fillStyle = bgHillsColor;
     ctx.beginPath();
-    ctx.moveTo(camX - 100, camY + 800);
-    for (let x = camX - 100; x < camX + 1200; x += 100) {
+    ctx.moveTo(startX, bottomY);
+    for (let x = startX; x < endX; x += 100) {
       const y = camY + 380 + Math.sin(x * 0.003) * 60;
       ctx.lineTo(x, y);
     }
-    ctx.lineTo(camX + 1200, camY + 800);
+    ctx.lineTo(endX, bottomY);
     ctx.closePath();
     ctx.fill();
 
     // Foreground closer hills
     ctx.fillStyle = hillsColor;
     ctx.beginPath();
-    ctx.moveTo(camX - 100, camY + 800);
-    for (let x = camX - 100; x < camX + 1200; x += 80) {
+    ctx.moveTo(startX, bottomY);
+    for (let x = startX; x < endX; x += 80) {
       const y = camY + 450 + Math.sin(x * 0.005) * 45;
       ctx.lineTo(x, y);
     }
-    ctx.lineTo(camX + 1200, camY + 800);
+    ctx.lineTo(endX, bottomY);
     ctx.closePath();
     ctx.fill();
 
