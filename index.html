@@ -206,7 +206,7 @@
         choice_send: "НАДІСЛАТИ ПОВІДОМЛЕННЯ ОПЕРАТОРУ",
         choice_restart: "ПЕРЕЗАПУСТИТИ СВІТ (ФАЗА 1)",
         send_placeholder: "Введіть ваше унікальне питання сюди...",
-        final_sent: "ПОВІДОМЛЕННЯ ВІДПРАВЛЕНО В КОСМОС НЕВІДОМОСТІ. СИСТЕМА ВИМКНЕНА."
+        final_sent: "ПОВІДОМЛЕННЯ СКОПІЙОВАНО! ПЕРЕНАПРАВЛЯЄМО В TELEGRAM ОПЕРАТОРА (@robosapiens8)..."
       }
     };
 
@@ -227,7 +227,7 @@
         choice_send: "TRANSMIT MESSAGE TO THE OPERATOR",
         choice_restart: "RESTART SIMULATION CYCLE (PHASE 1)",
         send_placeholder: "Type your unique question here...",
-        final_sent: "MESSAGE SENT INTO THE VOID OF THE HOST. SIMULATION TERMINATED."
+        final_sent: "MESSAGE COPIED! REDIRECTING TO OPERATOR'S TELEGRAM (@robosapiens8)..."
       }
     };
 
@@ -698,11 +698,11 @@
               document.getElementById('terminal-input-container').style.display = 'none';
               buttonsEl.innerHTML = '';
               
-              // Open default email client with the message pre-filled!
-              const emailDest = "bitsprite.game@gmail.com";
-              const subject = encodeURIComponent("BitSprite - Final Transmission / Фінальний Трансміт");
-              const body = encodeURIComponent(input);
-              window.open(`mailto:${emailDest}?subject=${subject}&body=${body}`, '_blank');
+              // Copy input message to clipboard and open Telegram link!
+              try {
+                navigator.clipboard.writeText(input).catch(e => {});
+              } catch(err) {}
+              window.open("https://t.me/robosapiens8", "_blank");
               
               // End game screen fade out
               setTimeout(() => {

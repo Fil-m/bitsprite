@@ -1051,16 +1051,16 @@ class BitSpriteGame {
     const playerRank = Math.floor(Math.random() * 10000000000) + 1;
     
     const scientists = [
-      "Stephen Hawking", "Roger Penrose", "Kip Thorne", 
-      "Donna Strickland", "Anton Zeilinger", "Alain Aspect", "John Clauser", 
-      "Andrea Ghez", "Reinhard Genzel", "Peter Higgs", "Francois Englert", 
-      "Arthur McDonald", "Takaaki Kajita", "Andre Geim", "Konstantin Novoselov", 
-      "Albert Einstein", "Max Planck", "Niels Bohr", "Marie Curie", 
-      "Richard Feynman", "Werner Heisenberg", "Erwin Schrodinger", "Paul Dirac", 
-      "Lene Hau", "Steven Weinberg", "Fabiola Gianotti", "Sabine Hossenfelder", 
-      "Brian Greene", "Michio Kaku", "Jocelyn Bell Burnell", "Vera Rubin", 
-      "Chien-Shiung Wu", "Nikola Tesla", "Ada Lovelace", "Alan Turing", 
-      "Tim Berners-Lee", "Linus Torvalds", "Satoshi Nakamoto", "Steve Wozniak"
+      "Elon_Musk_X", "vitalik.eth", "Satoshi_Nakamoto", "Hassabis_Deep",
+      "Jensen_Huang_GPU", "Altman_GPT", "Hinton_Neural", "yann_lecun_grad",
+      "andrew_ng_ai", "Torvalds_Linux", "Berners_Lee_WWW", "woz_apple",
+      "bjarne_cpp", "guido_python", "Knuth_TeX", "Hawking_BlackHole",
+      "tesla_lightning", "Curie_Radium", "Feynman_Quantum", "Lovelace_Ada",
+      "Turing_Enigma", "FeiFei_Li_Vision", "LeCun_Gradient", "Donald_Knuth",
+      "Stroustrup_C", "Gosling_Java", "Rossum_Python", "Kip_Thorne_BH",
+      "Penrose_Tiling", "Fabiola_CERN", "Green_String", "Kaku_Hyper",
+      "Hossenfelder_Spin", "Lene_Hau_Light", "Vera_Rubin_Dark", "Donna_Laser",
+      "Aspect_Quantum", "Zeilinger_Photon", "Clauser_Bell", "Higgs_Boson"
     ];
     
     // Pick 8 unique scientists from the list
@@ -1134,6 +1134,42 @@ class BitSpriteGame {
 
     // Generate fake leaderboard data
     this.generateLeaderboard();
+
+    // Populate the leaderboard UI table rows!
+    const tbody = document.getElementById('victory-leaderboard-body');
+    if (tbody) {
+      tbody.innerHTML = '';
+      this.leaderboardData.forEach(entry => {
+        const tr = document.createElement('tr');
+        
+        // Highlight style
+        if (entry.isPlayer) {
+          tr.style.background = "rgba(0, 240, 255, 0.2)";
+          tr.style.color = "var(--neon-cyan)";
+          tr.style.fontWeight = "bold";
+        } else if (entry.name === "robosapiens8") {
+          tr.style.background = "rgba(255, 51, 102, 0.25)";
+          tr.style.color = "#ff3366";
+          tr.style.fontWeight = "bold";
+        } else {
+          tr.style.borderBottom = "1px solid rgba(255, 255, 255, 0.1)";
+        }
+        
+        // Render name with dynamic indicator pointer
+        let displayName = entry.name;
+        if (entry.isPlayer) {
+          displayName += " 👈";
+        }
+
+        tr.innerHTML = `
+          <td style="padding: 6px 4px;">#${entry.rank.toLocaleString()}</td>
+          <td style="padding: 6px 4px;">${displayName}</td>
+          <td style="padding: 6px 4px; text-align: right;">${entry.time}</td>
+          <td style="padding: 6px 4px; text-align: right;">${entry.coins}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
 
     // Show victory card
     const card = document.getElementById('victory-screen');
