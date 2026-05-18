@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BitSprite — Кристал</title>
-  <link rel="stylesheet" href="style.css?v=3.2">
+  <link rel="stylesheet" href="style.css?v=3.3">
 </head>
 <body>
 
@@ -54,11 +54,13 @@
       BLOCK
     </div>
 
-    <!-- HUD bottom Frequency Slider Overlay (unlocked via Rowhammer) -->
-    <div id="freq-slider-container" class="overlay-panel">
-      <span>CPU CLK:</span>
-      <input type="range" id="freq-slider" min="0.5" max="1.0" step="0.5" value="1.0" oninput="changeCPUFrequency(this.value)">
-      <span id="freq-val">1.0x</span>
+    <!-- HUD Top-Right CPU CLK Toggle Flag (unlocked via Rowhammer) -->
+    <div id="freq-slider-container" class="overlay-panel cpu-clk-flag" onclick="toggleCPUFrequency()">
+      <span class="cpu-clk-label">⚡ CPU CLK</span>
+      <div class="cpu-toggle-switch">
+        <div class="cpu-toggle-knob"></div>
+      </div>
+      <span id="freq-val" class="cpu-clk-val">1.0x</span>
     </div>
 
     <!-- Mobile Touch Zones overlays -->
@@ -569,10 +571,23 @@
       }
     }
 
-    // HUD Frequency slider controls
+    // HUD Frequency slider/toggle controls
+    let currentFreq = 1.0;
     function changeCPUFrequency(val) {
-      window.GameKernel.cpuFrequency = parseFloat(val);
-      document.getElementById('freq-val').innerText = `${val}x`;
+      currentFreq = parseFloat(val);
+      window.GameKernel.cpuFrequency = currentFreq;
+      document.getElementById('freq-val').innerText = `${currentFreq.toFixed(1)}x`;
+      const container = document.getElementById('freq-slider-container');
+      if (container) {
+        if (currentFreq === 0.5) container.classList.add('slowed');
+        else container.classList.remove('slowed');
+      }
+    }
+
+    function toggleCPUFrequency() {
+      const nextFreq = (currentFreq === 1.0) ? 0.5 : 1.0;
+      changeCPUFrequency(nextFreq);
+      if (window.AudioEngine) window.AudioEngine.play('click');
     }
 
     // Touch controls input binding

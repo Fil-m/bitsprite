@@ -349,37 +349,73 @@ canvas {
   color: var(--text-secondary);
 }
 
-/* Frequency slider container in Phase 1+ */
+/* Top-Right CPU CLK Toggle Flag */
 #freq-slider-container {
-  bottom: 95px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 8px 16px;
-  display: flex;
+  position: absolute;
+  top: 90px;
+  right: 30px;
+  height: 34px;
+  padding: 0 10px;
+  display: none; /* Shown dynamically in game loop */
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   font-family: var(--font-mono);
-  font-size: 13px;
-  display: none; /* Displayed only when Rowhammer unlocked */
-}
-
-#freq-slider {
-  width: 120px;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255,255,255,0.2);
-  outline: none;
+  font-size: 11px;
+  font-weight: bold;
+  background: var(--glass-bg);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: 17px;
   cursor: pointer;
-  -webkit-appearance: none;
+  z-index: 100;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+  user-select: none;
 }
 
-#freq-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
+.cpu-clk-label {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 5px rgba(0, 240, 255, 0.4);
+}
+
+.cpu-toggle-switch {
+  width: 28px;
   height: 16px;
-  border-radius: 50%;
+  border-radius: 8px;
   background: var(--neon-cyan);
   box-shadow: 0 0 8px var(--neon-cyan);
+  position: relative;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cpu-toggle-knob {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transform: translateX(12px);
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Slowed 0.5x State styling adjustments */
+#freq-slider-container.slowed {
+  border-color: rgba(255, 51, 102, 0.4);
+}
+
+#freq-slider-container.slowed .cpu-toggle-switch {
+  background: #ff3366;
+  box-shadow: 0 0 8px #ff3366;
+}
+
+#freq-slider-container.slowed .cpu-toggle-knob {
+  transform: translateX(0);
+}
+
+.cpu-clk-val {
+  color: #fff;
 }
 
 /* Story Phase terminal dialogues */
@@ -451,7 +487,11 @@ canvas {
     gap: 4px;
   }
   #freq-slider-container {
-    bottom: 75px;
+    top: 65px;
+    bottom: auto;
+    right: 20px;
+    left: auto;
+    transform: none;
   }
   #btn-block {
     bottom: 95px;
