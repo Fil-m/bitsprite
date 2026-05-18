@@ -314,6 +314,49 @@ class BitSpriteRenderer {
       ctx.fillRect(key.x + 14, key.y + 21, 5, 3);
     });
 
+    // Coins (Neon golden spinning star / coin)
+    if (game.coins) {
+      game.coins.forEach(coin => {
+        if (coin.collected) return;
+        
+        ctx.save();
+        // Floating animation
+        const floatY = Math.sin((Date.now() + coin.x) / 200) * 4;
+        const cx = coin.x + 10;
+        const cy = coin.y + 10 + floatY;
+        
+        ctx.translate(cx, cy);
+        // Spinning animation
+        const angle = (Date.now() / 250) + coin.x;
+        ctx.rotate(angle);
+        
+        // Draw neon gold star/gearwheel
+        ctx.strokeStyle = "#ffd700";
+        ctx.shadowColor = "#ffd700";
+        ctx.shadowBlur = 8;
+        ctx.lineWidth = 2;
+        
+        // Inner circle
+        ctx.fillStyle = "rgba(255, 215, 0, 0.2)";
+        ctx.beginPath();
+        ctx.arc(0, 0, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Draw 8 neon spokes / rays (star shape)
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+          const r1 = 6;
+          const r2 = 12;
+          const a = (i * Math.PI) / 4;
+          ctx.moveTo(Math.cos(a) * r1, Math.sin(a) * r1);
+          ctx.lineTo(Math.cos(a) * r2, Math.sin(a) * r2);
+        }
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
+
     // Levers
     game.levers.forEach(lever => {
       ctx.fillStyle = "#8e8e8e";

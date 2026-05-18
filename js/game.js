@@ -247,6 +247,9 @@ class BitSpriteGame {
     });
 
     this.timer = 0;
+    this.levelTimer = 0;
+    this.coins = map.coins || [];
+    this.coinsCollected = 0;
     this.rowhammerGlobalHits = 0;
   }
 
@@ -457,6 +460,7 @@ class BitSpriteGame {
     }
 
     this.timer += dt;
+    this.levelTimer += dt;
 
     // Oscilloscope continuous fluctuation
     this.oscilloscopeTime += dt * 4;
@@ -870,6 +874,22 @@ class BitSpriteGame {
       }
     });
 
+    // Coins collection
+    this.coins.forEach(coin => {
+      if (!coin.collected) {
+        if (
+          this.player.x < coin.x + coin.w &&
+          this.player.x + this.player.w > coin.x &&
+          this.player.y < coin.y + coin.h &&
+          this.player.y + this.player.h > coin.y
+        ) {
+          coin.collected = true;
+          this.coinsCollected++;
+          if (window.AudioEngine) window.AudioEngine.play('collect');
+        }
+      }
+    });
+
     // Lever triggers
     this.levers.forEach(lever => {
       if (!lever.activated) {
@@ -1004,14 +1024,96 @@ class BitSpriteGame {
     this.loadLevelMap();
   }
 
+  generateLeaderboard() {
+    const operatorName = localStorage.getItem('bitsprite_player_name') || 'OPERATOR';
+    
+    // Ranks from 1 to 10,000,000,000
+    const playerRank = Math.floor(Math.random() * 10000000000) + 1;
+    
+    const scientists = [
+      "Stephen Hawking", "Roger Penrose", "Kip Thorne", 
+      "Donna Strickland", "Anton Zeilinger", "Alain Aspect", "John Clauser", 
+      "Andrea Ghez", "Reinhard Genzel", "Peter Higgs", "Francois Englert", 
+      "Arthur McDonald", "Takaaki Kajita", "Andre Geim", "Konstantin Novoselov", 
+      "Albert Einstein", "Max Planck", "Niels Bohr", "Marie Curie", 
+      "Richard Feynman", "Werner Heisenberg", "Erwin Schrodinger", "Paul Dirac", 
+      "Lene Hau", "Steven Weinberg", "Fabiola Gianotti", "Sabine Hossenfelder", 
+      "Brian Greene", "Michio Kaku", "Jocelyn Bell Burnell", "Vera Rubin", 
+      "Chien-Shiung Wu", "Nikola Tesla", "Ada Lovelace", "Alan Turing", 
+      "Tim Berners-Lee", "Linus Torvalds", "Satoshi Nakamoto", "Steve Wozniak"
+    ];
+    
+    // Pick 8 unique scientists from the list
+    const chosenScientists = [];
+    const pool = [...scientists];
+    for (let i = 0; i < 8; i++) {
+      const idx = Math.floor(Math.random() * pool.length);
+      chosenScientists.push(pool.splice(idx, 1)[0]);
+    }
+    
+    // Always include robosapiens8!
+    chosenScientists.push("robosapiens8");
+    
+    // Generate ranks
+    // Offset array for the 9 competitors around the player
+    const offsets = [-4, -3, -2, -1, 1, 2, 3, 4, 5];
+    
+    const list = [];
+    // Add player
+    list.push({
+      name: operatorName,
+      rank: playerRank,
+      isPlayer: true,
+      time: this.levelTimer.toFixed(1) + 's',
+      coins: `${this.coinsCollected}/${this.coins.length}`
+    });
+    
+    // Add scientists
+    chosenScientists.forEach((name, idx) => {
+      const offset = offsets[idx];
+      let competitorRank = playerRank + offset;
+      if (competitorRank < 1) competitorRank = playerRank + Math.abs(offset) + 10;
+      
+      // Competitor random stats
+      const fakeTime = Math.max(8.0, (this.levelTimer * (0.8 + Math.random() * 0.4))).toFixed(1);
+      const fakeCoins = Math.floor(Math.random() * (this.coins.length + 1));
+      
+      list.push({
+        name: name,
+        rank: competitorRank,
+        isPlayer: false,
+        time: fakeTime + 's',
+        coins: `${fakeCoins}/${this.coins.length}`
+      });
+    });
+    
+    // Sort list ascending by rank (lower rank number is better)
+    list.sort((a, b) => a.rank - b.rank);
+    
+    this.leaderboardData = list;
+  }
+
   victory() {
     this.victoryState = true;
     if (window.AudioEngine) window.AudioEngine.play('achievement');
 
-    // Calculate stars
-    const levelStars = this.timer < 30 ? 3 : (this.timer < 50 ? 2 : 1);
+    // Calculate dynamic stars based on time & coins collected
+    const levelLength = 1600 + Math.min(10, this.levelNumber) * 400;
+    const goldTime = Math.max(12, levelLength / 130);
+    const coinRatio = this.coins.length > 0 ? (this.coinsCollected / this.coins.length) : 1;
+
+    let levelStars = 1;
+    if (coinRatio >= 0.85 && this.levelTimer <= goldTime) {
+      levelStars = 3;
+    } else if (coinRatio >= 0.50 || this.levelTimer <= goldTime * 1.5) {
+      levelStars = 2;
+    }
+
     this.stars = levelStars;
     this.score += levelStars * 500;
+
+    // Generate fake leaderboard data
+    this.generateLeaderboard();
 
     // Show victory card
     const card = document.getElementById('victory-screen');

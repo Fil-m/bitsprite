@@ -421,3 +421,19 @@ canvas {
   color: lime;
   outline: none;
 }
+
+/* Operator Name Validation Shake & Glow */
+@keyframes input-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.shake-error {
+  animation: input-shake 0.3s ease-in-out;
+}
+
+.glow-error {
+  border-color: #ff3366 !important;
+  box-shadow: 0 0 15px rgba(255, 51, 102, 0.6) !important;
+}

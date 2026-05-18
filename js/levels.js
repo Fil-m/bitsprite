@@ -193,6 +193,29 @@ class LevelGenerator {
       }
     }
 
+    // 5. Place coins dynamically on stable platform coordinates
+    const coins = [];
+    platforms.forEach((plat, idx) => {
+      // Skip start, exit and spike platforms
+      if (idx === 0 || idx === platforms.length - 1 || plat.behavior === 'spikes') return;
+      
+      const coinY = plat.y - 30; // Float slightly above the platform
+      coins.push({
+        x: plat.x + plat.w * 0.25 - 10,
+        y: coinY,
+        w: 20,
+        h: 20,
+        collected: false
+      });
+      coins.push({
+        x: plat.x + plat.w * 0.75 - 10,
+        y: coinY,
+        w: 20,
+        h: 20,
+        collected: false
+      });
+    });
+
 
     // 6. Hazard spikes at the bottom gaps for level > 5
     if (levelNumber > 5) {
@@ -225,6 +248,7 @@ class LevelGenerator {
       keys,
       levers,
       exitGate,
+      coins,
       roomCount: Math.ceil(levelLength / 800)
     };
   }

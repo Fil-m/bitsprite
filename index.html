@@ -23,6 +23,14 @@
         <span id="hud-keys">0/1</span>
       </div>
       <div class="hud-item">
+        <span id="hud-label-coins">🪙 Монети:</span>
+        <span id="hud-coins" style="color: #ffd700; font-weight: bold; text-shadow: 0 0 5px rgba(255, 215, 0, 0.4);">0/0</span>
+      </div>
+      <div class="hud-item">
+        <span id="hud-label-timer">⏱️ Час:</span>
+        <span id="hud-timer" style="color: #00ff66; font-weight: bold; text-shadow: 0 0 5px rgba(0, 255, 102, 0.4);">0.0s</span>
+      </div>
+      <div class="hud-item">
         <span id="hud-label-level">Рівень:</span>
         <span id="hud-level">1</span>
       </div>
@@ -70,6 +78,13 @@
     <div id="menu-screen" class="fullscreen-screen visible">
       <h1 id="main-menu-logo">BITSPRITE</h1>
       <div class="menu-subtitle" id="menu-sub">КРИСТАЛ (v3.0)</div>
+      
+      <!-- Operator Name Input -->
+      <div id="operator-name-container" style="margin-bottom: 25px; text-align: center; transition: all 0.3s ease;">
+        <div id="lbl-operator-name" style="color: var(--neon-cyan); font-family: 'Courier Prime', monospace; font-size: 13px; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px;">ВВЕДІТЬ ІМ'Я ОПЕРАТОРА:</div>
+        <input type="text" id="operator-name-input" placeholder="..." maxlength="20" style="background: rgba(0, 0, 0, 0.75); border: 2px solid rgba(0, 240, 255, 0.4); color: #fff; padding: 10px 15px; font-family: 'Courier Prime', monospace; font-size: 16px; text-align: center; border-radius: 6px; outline: none; width: 230px; box-shadow: 0 0 15px rgba(0, 240, 255, 0.1); transition: all 0.3s ease;" />
+      </div>
+
       <div class="menu-buttons">
         <button class="menu-btn" id="btn-play-arcade" onclick="startArcadeMode()">АРКАДА</button>
         <button class="menu-btn" id="btn-play-story" onclick="startStoryMode()">СЮЖЕТ</button>
@@ -124,7 +139,26 @@
     <!-- Victory Screen with Stars Card -->
     <div id="victory-screen" class="fullscreen-screen">
       <h2 id="hud-victory" style="font-size: 40px; color: lime; margin-bottom: 10px; letter-spacing: 2px;">РІВЕНЬ ПРОЙДЕНО!</h2>
-      <div id="victory-stars" style="font-size: 44px; margin-bottom: 30px;">⭐⭐⭐</div>
+      <div id="victory-stars" style="font-size: 44px; margin-bottom: 20px;">⭐⭐⭐</div>
+      
+      <!-- Leaderboard Container -->
+      <div id="victory-leaderboard-container" style="background: rgba(0, 0, 0, 0.85); border: 2px solid var(--neon-cyan); border-radius: 8px; width: 90%; max-width: 480px; padding: 15px; margin-bottom: 25px; box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);">
+        <div style="color: var(--neon-cyan); font-family: 'Courier Prime', monospace; font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid rgba(0, 240, 255, 0.3); padding-bottom: 6px; letter-spacing: 1px; text-transform: uppercase;" id="lbl-leaderboard-title">РЕЄСТР ОПЕРАТОРІВ СИМУЛЯЦІЇ</div>
+        <table style="width: 100%; border-collapse: collapse; font-family: 'Courier Prime', monospace; font-size: 13px; text-align: left; color: #fff;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.25); color: var(--neon-cyan); font-weight: bold;">
+              <th style="padding: 4px;">РАНГ (RANK)</th>
+              <th style="padding: 4px;">ОПЕРАТОР</th>
+              <th style="padding: 4px; text-align: right;">ЧАС</th>
+              <th style="padding: 4px; text-align: right;">🪙</th>
+            </tr>
+          </thead>
+          <tbody id="victory-leaderboard-body">
+            <!-- Dynamically populated rows -->
+          </tbody>
+        </table>
+      </div>
+
       <button class="menu-btn" onclick="window.GameKernel.nextLevel()">ПРОДОВЖИТИ</button>
     </div>
 
@@ -230,6 +264,8 @@
 
       document.getElementById('hud-label-hp').innerText = trans.hud.hp;
       document.getElementById('hud-label-keys').innerText = trans.hud.keys;
+      document.getElementById('hud-label-coins').innerText = lang === 'ua' ? "🪙 Монети:" : "🪙 Coins:";
+      document.getElementById('hud-label-timer').innerText = lang === 'ua' ? "⏱️ Час:" : "⏱️ Time:";
       document.getElementById('hud-label-level').innerText = trans.hud.level;
       document.getElementById('hud-label-phase').innerText = trans.hud.phase;
       
@@ -238,6 +274,8 @@
       document.getElementById('btn-menu-achievements').innerText = trans.menu.achievements;
       document.getElementById('btn-menu-settings').innerText = trans.menu.settings;
       document.getElementById('btn-menu-restart').innerText = lang === 'ua' ? 'ПОЧАТИ ЗНОВУ' : 'RESTART GAME';
+      document.getElementById('lbl-operator-name').innerText = lang === 'ua' ? "ВВЕДІТЬ ІМ'Я ОПЕРАТОРА:" : "ENTER OPERATOR NAME:";
+      document.getElementById('lbl-leaderboard-title').innerText = lang === 'ua' ? "РЕЄСТР ОПЕРАТОРІВ СИМУЛЯЦІЇ" : "SIMULATION OPERATORS REGISTRY";
 
       document.getElementById('sett-title').innerText = trans.settings.title;
       document.getElementById('sett-sound').innerText = trans.settings.sound;
@@ -259,8 +297,48 @@
       document.getElementById('btn-godmode-toggle').innerText = isGodMode ? (lang === 'ua' ? 'УВІМКНЕНО' : 'ENABLED') : (lang === 'ua' ? 'ВИМКНЕНО' : 'DISABLED');
     }
 
+    // Pre-populate operator name on boot
+    window.addEventListener('load', () => {
+      const savedName = localStorage.getItem('bitsprite_player_name');
+      if (savedName) {
+        document.getElementById('operator-name-input').value = savedName;
+      }
+    });
+
+    function validateOperatorName() {
+      const inputEl = document.getElementById('operator-name-input');
+      const containerEl = document.getElementById('operator-name-container');
+      const name = inputEl.value.trim();
+      
+      if (!name) {
+        // Play error sound if audio is active
+        if (window.AudioEngine) window.AudioEngine.play('death');
+        
+        // Shake & glow red animation
+        containerEl.classList.remove('shake-error');
+        inputEl.classList.remove('glow-error');
+        
+        // Force reflow to restart css animation
+        void containerEl.offsetWidth; 
+        
+        containerEl.classList.add('shake-error');
+        inputEl.classList.add('glow-error');
+        
+        // Focus the input to let the operator type
+        inputEl.focus();
+        return null;
+      }
+      
+      // Remove glow error if valid
+      inputEl.classList.remove('glow-error');
+      localStorage.setItem('bitsprite_player_name', name);
+      return name;
+    }
+
     // MAIN MENU ACTIONS
     function startArcadeMode() {
+      const name = validateOperatorName();
+      if (!name) return;
       if (document.activeElement) document.activeElement.blur();
       closeScreen('menu-screen');
       window.GameKernel.init();
@@ -268,6 +346,8 @@
     }
 
     function startStoryMode() {
+      const name = validateOperatorName();
+      if (!name) return;
       if (document.activeElement) document.activeElement.blur();
       closeScreen('menu-screen');
       window.GameKernel.init();
@@ -326,7 +406,6 @@
             <span>${trans.exploits[exploitId].name} ${unlocked ? '🔓' : '🔒'}</span>
             <span style="color: #ff3366; font-size: 13px; font-weight: bold;">${bindStatus}</span>
           </div>
-          <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px; line-height: 1.4;">${trans.exploits[exploitId].desc}</div>
         `;
         
         if (unlocked) {
@@ -390,6 +469,9 @@
     }
 
     function restartMainGame() {
+      const name = validateOperatorName();
+      if (!name) return;
+
       const confirmMsg = window.gameSettings.language === 'ua' 
         ? "Скинути весь прогрес і почати гру з самого початку?" 
         : "Reset all progress and start the game from the very beginning?";
@@ -492,6 +574,8 @@
       document.getElementById('hud-hp').innerText = '❤️'.repeat(window.GameKernel.player.hp);
       const req = window.GameKernel.exitGate ? window.GameKernel.exitGate.requiredKeys : 1;
       document.getElementById('hud-keys').innerText = `${window.GameKernel.keysCount}/${req}`;
+      document.getElementById('hud-coins').innerText = `${window.GameKernel.coinsCollected}/${window.GameKernel.coins ? window.GameKernel.coins.length : 0}`;
+      document.getElementById('hud-timer').innerText = `${window.GameKernel.levelTimer.toFixed(1)}s`;
       document.getElementById('hud-level').innerText = window.GameKernel.levelNumber;
       document.getElementById('hud-phase').innerText = window.GameKernel.activePhase + 1;
 
