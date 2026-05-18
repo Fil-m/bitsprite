@@ -274,6 +274,7 @@
       const trans = lang === 'ua' ? window.translationsUA : window.translationsEN;
       window.translations = trans;
 
+      document.getElementById('main-menu-logo').innerText = trans.menu.title;
       document.getElementById('hud-label-hp').innerText = trans.hud.hp;
       document.getElementById('hud-label-keys').innerText = trans.hud.keys;
       document.getElementById('hud-label-coins').innerText = lang === 'ua' ? "🪙 Монети:" : "🪙 Coins:";
