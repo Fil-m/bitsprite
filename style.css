@@ -100,9 +100,9 @@ canvas {
   color: var(--neon-cyan);
 }
 
-/* Float horizontal Action Slots Panel below HUD */
+/* Float horizontal Action Slots Panel at bottom-center */
 #action-slots-panel {
-  top: 90px;
+  bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
   padding: 8px;
@@ -351,7 +351,7 @@ canvas {
 
 /* Frequency slider container in Phase 1+ */
 #freq-slider-container {
-  bottom: 30px;
+  bottom: 95px;
   left: 50%;
   transform: translateX(-50%);
   padding: 8px 16px;
@@ -451,14 +451,19 @@ canvas {
     gap: 4px;
   }
   #freq-slider-container {
-    bottom: 20px;
+    bottom: 75px;
   }
   #btn-block {
-    top: 65px;
-  }
-  #action-slots-panel {
     bottom: 95px;
     left: 20px;
+    top: auto;
+    transform: none;
+  }
+  #action-slots-panel {
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px;
   }
   .touch-zone-left {
     bottom: 20px;

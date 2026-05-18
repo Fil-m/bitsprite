@@ -11,8 +11,8 @@ class BitSpriteRenderer {
     const h = canvas.height;
     ctx.save();
 
-    // Zoom out slightly to make it easier for players to navigate and orient!
-    const zoom = 0.85;
+    // Zoom scale restored to 1.0 (original size)
+    const zoom = 1.0;
 
     // Calculate camera smooth tracking, adjusting viewport dimensions by zoom factor
     const cameraX = game.player.x - (w / zoom) / 2;
