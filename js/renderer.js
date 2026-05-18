@@ -11,12 +11,18 @@ class BitSpriteRenderer {
     const h = canvas.height;
     ctx.save();
 
-    // Calculate camera smooth tracking
-    const cameraX = game.player.x - w / 2;
-    const cameraY = Math.max(-800, Math.min(200, game.player.y - h / 2 - 100));
+    // Zoom out slightly to make it easier for players to navigate and orient!
+    const zoom = 0.85;
+
+    // Calculate camera smooth tracking, adjusting viewport dimensions by zoom factor
+    const cameraX = game.player.x - (w / zoom) / 2;
+    const cameraY = Math.max(-800, Math.min(200, game.player.y - (h / zoom) / 2 - 100));
 
     // DRAW PHASE BACKGROUNDS
     this.drawBackground(ctx, w, h, game);
+
+    // Apply zoom scale factor
+    ctx.scale(zoom, zoom);
 
     // Apply Camera offsets
     ctx.translate(-cameraX, -cameraY);
@@ -26,9 +32,9 @@ class BitSpriteRenderer {
       this.drawParallaxClouds(ctx, cameraX, cameraY, game);
     }
 
-    // Draw glowing cache grids (Phase 2 and 3)
+    // Draw glowing cache grids (Phase 2 and 3), expanding grid coverage bounds
     if (game.activePhase >= 2) {
-      this.drawSpaceGrid(ctx, w, h, cameraX, cameraY, game);
+      this.drawSpaceGrid(ctx, w / zoom, h / zoom, cameraX, cameraY, game);
     }
 
     // DRAW LEVEL PLATFORMS & SPARK HAZARDS

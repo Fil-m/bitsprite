@@ -100,19 +100,19 @@ canvas {
   color: var(--neon-cyan);
 }
 
-/* Float vertical Action Slots Panel */
+/* Float horizontal Action Slots Panel above left controls */
 #action-slots-panel {
-  top: 100px;
-  left: 20px;
-  padding: 12px;
+  bottom: 110px;
+  left: 30px;
+  padding: 8px;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex-direction: row;
+  gap: 8px;
 }
 
 .action-slot {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -123,6 +123,7 @@ canvas {
   transition: all 0.2s ease;
   font-family: var(--font-mono);
   font-weight: bold;
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
@@ -170,8 +171,8 @@ canvas {
 }
 
 .touch-btn {
-  width: 70px;
-  height: 70px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -180,7 +181,7 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 20px;
   color: #fff;
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
@@ -197,10 +198,10 @@ canvas {
   top: 90px;
   left: 50%;
   transform: translateX(-50%);
-  width: 140px;
-  height: 44px;
-  border-radius: 22px;
-  font-size: 14px;
+  width: 120px;
+  height: 38px;
+  border-radius: 19px;
+  font-size: 13px;
   font-family: var(--font-mono);
   letter-spacing: 1px;
 }
@@ -436,4 +437,42 @@ canvas {
 .glow-error {
   border-color: #ff3366 !important;
   box-shadow: 0 0 15px rgba(255, 51, 102, 0.6) !important;
+}
+
+/* Responsive Media Query for smaller Mobile Screen Layouts */
+@media (max-width: 900px) {
+  #hud-bar {
+    top: 10px;
+    padding: 8px 16px;
+    width: 95%;
+  }
+  .hud-item {
+    font-size: 12px;
+    gap: 4px;
+  }
+  #freq-slider-container {
+    bottom: 20px;
+  }
+  #btn-block {
+    top: 65px;
+  }
+  #action-slots-panel {
+    bottom: 95px;
+    left: 20px;
+  }
+  .touch-zone-left {
+    bottom: 20px;
+    left: 20px;
+    gap: 12px;
+  }
+  .touch-zone-right {
+    bottom: 20px;
+    right: 20px;
+    gap: 10px;
+  }
+  .touch-btn {
+    width: 55px;
+    height: 55px;
+    font-size: 18px;
+  }
 }
