@@ -113,6 +113,10 @@
           <button class="menu-btn" id="btn-language-toggle" onclick="toggleLanguage()">UA</button>
         </div>
         <div class="setting-row">
+          <span id="sett-speedmode">Швидкість гри</span>
+          <button class="menu-btn" id="btn-speedmode-toggle" onclick="toggleSpeedMode()">ЗВИЧАЙНА (100%)</button>
+        </div>
+        <div class="setting-row">
           <span id="sett-godmode" style="color: #ffcc00; font-weight: bold;">Режим Бога</span>
           <button class="menu-btn" id="btn-godmode-toggle" onclick="toggleGodMode()" style="border-color: #ffcc00; color: #ffcc00;">ВИМКНЕНО</button>
         </div>
@@ -126,6 +130,16 @@
             <option value="4">ФАЗА 5 (Червона / Конвеєр)</option>
           </select>
         </div>
+        
+        <!-- PC KEYBINDINGS GRID TABLE -->
+        <div class="keybind-container">
+          <div class="keybind-header" id="sett-keybind-title">КЕРУВАННЯ PC (КЛАВІШІ)</div>
+          <div class="keybind-table" id="keybind-table-body">
+            <!-- Dynamically populated rows -->
+          </div>
+          <button class="menu-btn" id="btn-reset-keybinds" onclick="resetKeyBindings()" style="padding: 8px 16px; font-size: 13px; margin-top: 5px; border-color: rgba(0, 240, 255, 0.4); color: var(--neon-cyan);">Скинути Клавіші</button>
+        </div>
+
         <button class="menu-btn" id="btn-reset-prog" onclick="resetProgress()" style="border-color: #ff3366; color: #ff3366;">Скинути Прогрес</button>
         <button class="menu-btn" onclick="closeScreen('settings-screen')">НАЗАД</button>
       </div>
@@ -236,14 +250,27 @@
     window.gameSettings = {
       sound: true,
       vibration: true,
-      language: 'ua' // 'ua' or 'en'
+      language: 'ua', // 'ua' or 'en'
+      speedMode: 'normal', // 'normal' or 'lite'
+      keyBindings: {
+        left: ['KeyA', 'ArrowLeft'],
+        right: ['KeyD', 'ArrowRight'],
+        jump: ['KeyW', 'ArrowUp', 'Space'],
+        down: ['KeyS', 'ArrowDown'],
+        action: ['KeyE', 'Enter'],
+        block: ['ShiftLeft', 'Escape']
+      }
     };
 
-    // Load settings from localStorage
+    // Load settings from localStorage with safe fallback deep-merging
     try {
       const savedSettings = localStorage.getItem('bitsprite_settings');
       if (savedSettings) {
-        window.gameSettings = JSON.parse(savedSettings);
+        const parsed = JSON.parse(savedSettings);
+        Object.assign(window.gameSettings, parsed);
+        if (parsed.keyBindings) {
+          window.gameSettings.keyBindings = Object.assign({}, window.gameSettings.keyBindings, parsed.keyBindings);
+        }
       }
     } catch(e) {}
   </script>
@@ -303,6 +330,26 @@
       document.getElementById('btn-language-toggle').innerText = lang.toUpperCase();
       document.getElementById('btn-sound-toggle').innerText = window.gameSettings.sound ? trans.settings.on : trans.settings.off;
       document.getElementById('btn-vibrate-toggle').innerText = window.gameSettings.vibration ? trans.settings.on : trans.settings.off;
+
+      // Speed Mode localized state update
+      document.getElementById('sett-speedmode').innerText = lang === 'ua' ? 'Швидкість гри' : 'Game Speed';
+      const speedBtn = document.getElementById('btn-speedmode-toggle');
+      if (window.gameSettings.speedMode === 'lite') {
+        speedBtn.innerText = lang === 'ua' ? 'ЛЕГКА (75%)' : 'LITE (75%)';
+        speedBtn.style.borderColor = 'lime';
+        speedBtn.style.color = 'lime';
+      } else {
+        speedBtn.innerText = lang === 'ua' ? 'ЗВИЧАЙНА (100%)' : 'NORMAL (100%)';
+        speedBtn.style.borderColor = '';
+        speedBtn.style.color = '';
+      }
+
+      // Keybindings labels and dynamic list update
+      document.getElementById('sett-keybind-title').innerText = lang === 'ua' ? 'КЕРУВАННЯ PC (КЛАВІШІ)' : 'PC KEYBOARD CONTROLS';
+      document.getElementById('btn-reset-keybinds').innerText = lang === 'ua' ? 'Скинути Клавіші' : 'Reset Keys';
+      
+      // Refresh rebind rows
+      renderKeyBindings();
 
       // God Mode UI localization updates
       const isCompleted = localStorage.getItem('bitsprite_completed') === 'true';
@@ -507,6 +554,150 @@
       window.gameSettings.language = window.gameSettings.language === 'ua' ? 'en' : 'ua';
       saveSettings();
       updateLocalizedTexts();
+    }
+
+    function toggleSpeedMode() {
+      window.gameSettings.speedMode = window.gameSettings.speedMode === 'normal' ? 'lite' : 'normal';
+      saveSettings();
+      updateLocalizedTexts();
+      if (window.AudioEngine) window.AudioEngine.play('collect');
+    }
+
+    // Interactive custom key bindings populator & handler
+    const ACTION_LABELS_UA = {
+      left: "Рух вліво",
+      right: "Рух вправо",
+      jump: "Стрибок / Вгору",
+      down: "Вниз / Спуск",
+      action: "Дія (ACTION)",
+      block: "Блок (BLOCK)"
+    };
+    const ACTION_LABELS_EN = {
+      left: "Move Left",
+      right: "Move Right",
+      jump: "Jump / Up",
+      down: "Move Down",
+      action: "Action (ACTION)",
+      block: "Block (BLOCK)"
+    };
+
+    window.rebindingState = null; // Will capture { actionId: string, slotIdx: number }
+
+    function renderKeyBindings() {
+      const container = document.getElementById('keybind-table-body');
+      if (!container) return;
+      container.innerHTML = '';
+      
+      const lang = window.gameSettings.language;
+      const labels = lang === 'ua' ? ACTION_LABELS_UA : ACTION_LABELS_EN;
+      const bindings = window.gameSettings.keyBindings;
+
+      Object.keys(bindings).forEach(actionId => {
+        const row = document.createElement('div');
+        row.className = 'keybind-row';
+
+        const label = document.createElement('span');
+        label.className = 'keybind-label';
+        label.innerText = labels[actionId];
+        row.appendChild(label);
+
+        // Primary and Secondary rebindable slots
+        for (let slotIdx = 0; slotIdx < 2; slotIdx++) {
+          const btn = document.createElement('button');
+          btn.className = 'keybind-btn';
+          
+          const activeKey = bindings[actionId][slotIdx];
+          btn.innerText = activeKey ? formatKeyName(activeKey) : '---';
+          
+          if (window.rebindingState && window.rebindingState.actionId === actionId && window.rebindingState.slotIdx === slotIdx) {
+            btn.classList.add('listening');
+            btn.innerText = lang === 'ua' ? '...' : '...';
+          }
+
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            startRebinding(actionId, slotIdx);
+          };
+
+          row.appendChild(btn);
+        }
+
+        container.appendChild(row);
+      });
+    }
+
+    function formatKeyName(code) {
+      if (code.startsWith('Key')) return code.slice(3);
+      if (code.startsWith('Digit')) return code.slice(5);
+      if (code.startsWith('Arrow')) return code.slice(5);
+      if (code === 'Space') return 'Space';
+      if (code === 'ShiftLeft') return 'LShift';
+      if (code === 'ShiftRight') return 'RShift';
+      if (code === 'ControlLeft') return 'LCtrl';
+      if (code === 'ControlRight') return 'RCtrl';
+      if (code === 'AltLeft') return 'LAlt';
+      if (code === 'AltRight') return 'RAlt';
+      if (code === 'Escape') return 'Esc';
+      if (code === 'Enter') return 'Enter';
+      return code;
+    }
+
+    function startRebinding(actionId, slotIdx) {
+      window.rebindingState = { actionId, slotIdx };
+      renderKeyBindings();
+
+      // Listen capture globally
+      const handleNextKey = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const pressedKey = e.code;
+        if (pressedKey) {
+          const binds = window.gameSettings.keyBindings[actionId];
+          binds[slotIdx] = pressedKey;
+          
+          // Clear standard overlaps on the same action row
+          if (slotIdx === 0 && binds[1] === pressedKey) binds[1] = '';
+          if (slotIdx === 1 && binds[0] === pressedKey) binds[0] = '';
+          
+          window.rebindingState = null;
+          saveSettings();
+          renderKeyBindings();
+          
+          // Re-instantiate game listener bindings dynamically
+          if (window.GameKernel) {
+            window.GameKernel.setupListeners();
+          }
+
+          if (window.AudioEngine) window.AudioEngine.play('collect');
+        }
+        
+        window.removeEventListener('keydown', handleNextKey, true);
+      };
+      
+      window.addEventListener('keydown', handleNextKey, true);
+    }
+
+    function resetKeyBindings() {
+      const confirmMsg = window.gameSettings.language === 'ua'
+        ? "Скинути всі клавіші до початкових налаштувань?"
+        : "Reset all keybindings to defaults?";
+      if (confirm(confirmMsg)) {
+        window.gameSettings.keyBindings = {
+          left: ['KeyA', 'ArrowLeft'],
+          right: ['KeyD', 'ArrowRight'],
+          jump: ['KeyW', 'ArrowUp', 'Space'],
+          down: ['KeyS', 'ArrowDown'],
+          action: ['KeyE', 'Enter'],
+          block: ['ShiftLeft', 'Escape']
+        };
+        saveSettings();
+        renderKeyBindings();
+        if (window.GameKernel) {
+          window.GameKernel.setupListeners();
+        }
+        if (window.AudioEngine) window.AudioEngine.play('collect');
+      }
     }
 
     function toggleGodMode() {

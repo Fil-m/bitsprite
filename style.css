@@ -304,6 +304,23 @@ canvas {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-height: 85vh;
+  overflow-y: auto;
+  touch-action: pan-y !important;
+}
+
+/* Custom scrollbars inside glassmorphic panels */
+.sheet-container::-webkit-scrollbar {
+  width: 6px;
+}
+.sheet-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 3px;
+}
+.sheet-container::-webkit-scrollbar-thumb {
+  background: var(--neon-cyan);
+  border-radius: 3px;
+  box-shadow: 0 0 5px var(--neon-cyan);
 }
 
 .sheet-title {
@@ -554,3 +571,89 @@ canvas {
     width: 95% !important;
   }
 }
+
+/* Custom PC Keybinding styles */
+.keybind-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px dashed rgba(0, 240, 255, 0.2);
+  padding-top: 15px;
+  margin-top: 5px;
+}
+
+.keybind-header {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--neon-cyan);
+  letter-spacing: 1px;
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.keybind-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.keybind-row {
+  display: grid;
+  grid-template-columns: 1fr 100px 100px;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.keybind-label {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.keybind-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: bold;
+  padding: 6px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+
+.keybind-btn:hover {
+  background: rgba(0, 240, 255, 0.08);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+}
+
+.keybind-btn.listening {
+  background: rgba(255, 51, 102, 0.15) !important;
+  border-color: #ff3366 !important;
+  box-shadow: 0 0 12px #ff3366 !important;
+  animation: pulse-glow-red 1s infinite alternate;
+  color: #ff3366;
+}
+
+@keyframes pulse-glow-red {
+  from {
+    opacity: 0.8;
+    box-shadow: 0 0 4px #ff3366;
+  }
+  to {
+    opacity: 1;
+    box-shadow: 0 0 16px #ff3366;
+  }
+}
+

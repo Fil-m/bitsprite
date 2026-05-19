@@ -254,16 +254,38 @@ class BitSpriteGame {
   }
 
   setupListeners() {
-    window.addEventListener('keydown', e => {
-      // Prevent browser default activation (scrolling with Space, button click with Enter/Space)
-      if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyE') {
+    // Clean up previous event listeners if setupListeners is called multiple times (e.g. on custom rebind)
+    if (this._onKeyDown) {
+      window.removeEventListener('keydown', this._onKeyDown);
+    }
+    if (this._onKeyUp) {
+      window.removeEventListener('keyup', this._onKeyUp);
+    }
+
+    this._onKeyDown = e => {
+      // Get all active bound key codes
+      const bindings = window.gameSettings ? window.gameSettings.keyBindings : null;
+      if (!bindings) return;
+
+      const allBoundKeys = [
+        ...bindings.left,
+        ...bindings.right,
+        ...bindings.jump,
+        ...bindings.down,
+        ...bindings.action,
+        ...bindings.block
+      ];
+
+      // Prevent browser default activation only for currently bound game control keys
+      if (allBoundKeys.includes(e.code)) {
         e.preventDefault();
       }
 
       this.keysPressed[e.code] = true;
       
       // Jump
-      if ((e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') && this.player.isOnGround) {
+      const isJumpPressed = bindings.jump.includes(e.code);
+      if (isJumpPressed && this.player.isOnGround) {
         this.player.vy = -PHYSICS.JUMP_FORCE;
         if (window.AudioEngine) window.AudioEngine.play('jump');
         
@@ -282,18 +304,33 @@ class BitSpriteGame {
       if (e.code === 'Digit4') window.SlotsEngine.selectSlot(3);
       if (e.code === 'Digit5') window.SlotsEngine.selectSlot(4);
 
-      // ACTION Execution (E or Enter)
-      if (e.code === 'KeyE' || e.code === 'Enter') {
+      // ACTION Execution (E or Enter, or custom action key)
+      const isActionPressed = bindings.action.includes(e.code);
+      if (isActionPressed) {
         this.triggerActionButton();
       }
-    });
+    };
 
-    window.addEventListener('keyup', e => {
-      if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyE') {
-        e.preventDefault();
+    this._onKeyUp = e => {
+      const bindings = window.gameSettings ? window.gameSettings.keyBindings : null;
+      if (bindings) {
+        const allBoundKeys = [
+          ...bindings.left,
+          ...bindings.right,
+          ...bindings.jump,
+          ...bindings.down,
+          ...bindings.action,
+          ...bindings.block
+        ];
+        if (allBoundKeys.includes(e.code)) {
+          e.preventDefault();
+        }
       }
       this.keysPressed[e.code] = false;
-    });
+    };
+
+    window.addEventListener('keydown', this._onKeyDown);
+    window.addEventListener('keyup', this._onKeyUp);
   }
 
   triggerActionButton() {
@@ -301,7 +338,9 @@ class BitSpriteGame {
 
     if (this.carriedBlock) {
       // Drop block in front of player
-      const dir = this.keysPressed['KeyA'] || this.keysPressed['ArrowLeft'] ? -1 : 1;
+      const bindings = window.gameSettings ? window.gameSettings.keyBindings : null;
+      const isLeftPressed = bindings ? bindings.left.some(k => this.keysPressed[k]) : (this.keysPressed['KeyA'] || this.keysPressed['ArrowLeft']);
+      const dir = isLeftPressed ? -1 : 1;
       this.carriedBlock.x = this.player.x + 16 - this.carriedBlock.w/2 + dir * 35;
       this.carriedBlock.y = this.player.y;
       this.carriedBlock.vy = 0;
@@ -449,6 +488,11 @@ class BitSpriteGame {
   update(dt) {
     if (this.isDead || this.victoryState) return;
 
+    // Scale dt for Lite Mode (0.75x speed)
+    if (window.gameSettings && window.gameSettings.speedMode === 'lite') {
+      dt *= 0.75;
+    }
+
     if (this.player.strikeTimer > 0) {
       this.player.strikeTimer--;
     }
@@ -527,7 +571,9 @@ class BitSpriteGame {
     }
 
     // Shield (BLOCK key)
-    this.player.isShieldActive = this.keysPressed['ShiftLeft'] || this.keysPressed['Escape'] || this.touchInputs.block;
+    const bindings = window.gameSettings ? window.gameSettings.keyBindings : null;
+    const isBlockPressed = bindings ? bindings.block.some(k => this.keysPressed[k]) : (this.keysPressed['ShiftLeft'] || this.keysPressed['Escape']);
+    this.player.isShieldActive = isBlockPressed || this.touchInputs.block;
 
     // UPDATE PLAYER PHYSICS
     this.updatePlayerPhysics(dt);
@@ -622,10 +668,14 @@ class BitSpriteGame {
   }
 
   updatePlayerPhysics(dt) {
+    const bindings = window.gameSettings ? window.gameSettings.keyBindings : null;
+    const isLeftPressed = bindings ? bindings.left.some(k => this.keysPressed[k]) : (this.keysPressed['KeyA'] || this.keysPressed['ArrowLeft']);
+    const isRightPressed = bindings ? bindings.right.some(k => this.keysPressed[k]) : (this.keysPressed['KeyD'] || this.keysPressed['ArrowRight']);
+
     // Horizontal Inputs
     let moveDir = 0;
-    if (this.keysPressed['KeyA'] || this.keysPressed['ArrowLeft'] || this.touchInputs.left) moveDir = -1;
-    if (this.keysPressed['KeyD'] || this.keysPressed['ArrowRight'] || this.touchInputs.right) moveDir = 1;
+    if (isLeftPressed || this.touchInputs.left) moveDir = -1;
+    if (isRightPressed || this.touchInputs.right) moveDir = 1;
 
     const isGod = localStorage.getItem('bitsprite_godmode') === 'true';
 
@@ -654,9 +704,11 @@ class BitSpriteGame {
     if (this.isHijackActive) {
       // Flying non-gravity mode
       this.player.vy = 0;
-      if (this.keysPressed['KeyW'] || this.keysPressed['ArrowUp'] || this.touchInputs.jump) {
+      const isJumpPressed = bindings ? bindings.jump.some(k => this.keysPressed[k]) : (this.keysPressed['KeyW'] || this.keysPressed['ArrowUp'] || this.touchInputs.jump);
+      const isDownPressed = bindings ? bindings.down.some(k => this.keysPressed[k]) : (this.keysPressed['KeyS'] || this.keysPressed['ArrowDown']);
+      if (isJumpPressed || this.touchInputs.jump) {
         this.player.vy = -300;
-      } else if (this.keysPressed['KeyS'] || this.keysPressed['ArrowDown']) {
+      } else if (isDownPressed) {
         this.player.vy = 300;
       }
     } else {
