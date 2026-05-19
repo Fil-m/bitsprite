@@ -32,8 +32,8 @@ class LevelGenerator {
     const hasRowhammer = window.SlotsEngine && window.SlotsEngine.unlockedAchievements && window.SlotsEngine.unlockedAchievements.includes('rowhammer');
     const hasGlitch = window.SlotsEngine && window.SlotsEngine.unlockedAchievements && window.SlotsEngine.unlockedAchievements.includes('glitch');
 
-    // Level length scales dynamically with levelNumber (Level 1: 1800px, Level 10+: 5000px)
-    const levelLength = 1600 + Math.min(10, levelNumber) * 400;
+    // Level length scales dynamically with levelNumber, naturally increasing platforms and enemies
+    const levelLength = 1600 + levelNumber * 500;
 
     // 1. Starting platform
     platforms.push({
@@ -54,8 +54,8 @@ class LevelGenerator {
 
     // 2. Generate platforms dynamically along the level length (Left-to-Right random walk)
     while (lastX < levelLength - 350) {
-      // Rowhammerable platforms always spawn so players can unlock Rowhammer
-      const isRowhammerable = Math.random() < 0.25;
+      // Rowhammerable platforms always spawn so players can unlock Rowhammer (50% chance)
+      const isRowhammerable = Math.random() < 0.50;
 
       // Platform behavior & decay
       let behavior = 'static';
@@ -217,30 +217,7 @@ class LevelGenerator {
     });
 
 
-    // 6. Hazard spikes at the bottom gaps for level > 5
-    if (levelNumber > 5) {
-      platforms.forEach((plat, idx) => {
-        if (idx < platforms.length - 1) {
-          const nextPlat = platforms[idx + 1];
-          const gap = nextPlat.x - (plat.x + plat.w);
-          // If it is a real gap (and not a giant hijack gap), add spikes
-          if (gap > 90 && gap < 300) {
-            platforms.push({
-              x: plat.x + plat.w + 10,
-              y: 580,
-              w: gap - 20,
-              h: 20,
-              behavior: 'spikes',
-              isRowhammerable: false,
-              decayRate: 0,
-              charge: 100,
-              originalWidth: gap - 20,
-              hitCounter: 0
-            });
-          }
-        }
-      });
-    }
+
 
     return {
       platforms,
