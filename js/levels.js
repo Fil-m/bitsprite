@@ -189,8 +189,14 @@ class LevelGenerator {
       // Spawn patrolling ALU enemies
       if (behavior === 'static') {
         const spawnEnemyRand = Math.random();
+        
+        // From level 2 to 10, reduce spawn rates by half
+        const isLowFoxLevel = (levelNumber >= 2 && levelNumber <= 10);
+        const clumpThreshold = isLowFoxLevel ? 0.15 : 0.30;
+        const singleThreshold = isLowFoxLevel ? 0.225 : 0.45;
+
         // If Glitch is unlocked, spawn clumps of enemies that require a Glitch blast, otherwise spawn normally
-        if (hasGlitch && spawnEnemyRand < 0.3) {
+        if (hasGlitch && spawnEnemyRand < clumpThreshold) {
           // Clump of 2 ALU enemies patrolling close together
           enemies.push({
             type: 'aluPatrol',
@@ -214,7 +220,7 @@ class LevelGenerator {
             speed: 1.2 + (levelNumber - 1) * 0.05,
             dir: -1
           });
-        } else if (spawnEnemyRand < 0.45) {
+        } else if (spawnEnemyRand < singleThreshold) {
           // Standard single ALU enemy
           enemies.push({
             type: 'aluPatrol',
