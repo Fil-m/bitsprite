@@ -187,11 +187,16 @@ canvas {
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   transition: transform 0.1s ease, background 0.2s ease;
+  touch-action: none; /* Disables double-tap zoom & standard gestures on buttons */
 }
 
 .touch-btn:active {
   transform: scale(0.9);
   background: rgba(255,255,255,0.15);
+}
+
+#btn-action {
+  margin-right: 50px; /* Shifted left to avoid browser fullscreen/exit overlays on screen edge */
 }
 
 #btn-block {
