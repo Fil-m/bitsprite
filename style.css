@@ -24,6 +24,8 @@
 body, html {
   width: 100vw;
   height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  height: -webkit-fill-available;
   overflow: hidden;
   background-color: #0b0c10;
   font-family: var(--font-display);
