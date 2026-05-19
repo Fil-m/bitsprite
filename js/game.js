@@ -570,11 +570,14 @@ class BitSpriteGame {
 
     // 2. Horizontal patrol pacing
     this.gcPatrol.x += this.gcPatrol.speed * this.gcPatrol.dir * 60 * dt;
-    if (this.gcPatrol.x > 2100) {
-      this.gcPatrol.x = 2100;
+    const minPatrolX = this.levelNumber === 1 ? 400 : 150;
+    const maxPatrolX = this.levelNumber === 1 ? 660 : (this.platforms.length > 0 ? this.platforms[this.platforms.length - 1].x + 100 : 2100);
+
+    if (this.gcPatrol.x > maxPatrolX) {
+      this.gcPatrol.x = maxPatrolX;
       this.gcPatrol.dir = -1;
-    } else if (this.gcPatrol.x < 150) {
-      this.gcPatrol.x = 150;
+    } else if (this.gcPatrol.x < minPatrolX) {
+      this.gcPatrol.x = minPatrolX;
       this.gcPatrol.dir = 1;
     }
 

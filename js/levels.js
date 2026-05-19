@@ -35,6 +35,87 @@ class LevelGenerator {
     // Level length scales dynamically with levelNumber, naturally increasing platforms and enemies
     const levelLength = 1600 + levelNumber * 500;
 
+    // --- LEVEL 1 PRESET: 3 PLATFORMS, NO FOXES (ONLY WOLF PRESENT) ---
+    if (levelNumber === 1) {
+      // 1. Starting platform
+      platforms.push({
+        x: 0,
+        y: 500,
+        w: 250,
+        h: 20,
+        isRowhammerable: false,
+        behavior: 'static',
+        decayRate: 0,
+        charge: 100,
+        originalWidth: 250,
+        hitCounter: 0
+      });
+
+      // 2. Middle platform (Rowhammerable, with Wolf spawn, 1 key, 2 coins)
+      platforms.push({
+        x: 400,
+        y: 440,
+        w: 300,
+        h: 20,
+        isRowhammerable: true,
+        behavior: 'static',
+        decayRate: 0,
+        charge: 100,
+        originalWidth: 300,
+        hitCounter: 0
+      });
+
+      // 3. Exit platform
+      platforms.push({
+        x: 850,
+        y: 480,
+        w: 300,
+        h: 20,
+        isRowhammerable: false,
+        behavior: 'static',
+        decayRate: 0,
+        charge: 100,
+        originalWidth: 300,
+        hitCounter: 0
+      });
+
+      // 1 Key on middle platform
+      keys.push({
+        x: 538,
+        y: 400,
+        w: 24,
+        h: 24,
+        collected: false
+      });
+
+      // 2 Coins on middle platform
+      const coins = [
+        { x: 465, y: 410, w: 20, h: 20, collected: false },
+        { x: 615, y: 410, w: 20, h: 20, collected: false }
+      ];
+
+      // Exit Gate
+      exitGate = {
+        x: 1020,
+        y: 380,
+        w: 40,
+        h: 100,
+        gateId: 'gate_exit',
+        isSolid: true,
+        requiredKeys: 1
+      };
+
+      return {
+        platforms,
+        enemies, // Empty array: absolutely no foxes on Level 1!
+        keys,
+        levers,
+        exitGate,
+        coins,
+        roomCount: 2
+      };
+    }
+
     // 1. Starting platform
     platforms.push({
       x: 0,
