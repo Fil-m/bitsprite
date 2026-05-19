@@ -28,6 +28,12 @@ body, html {
   background-color: #0b0c10;
   font-family: var(--font-display);
   color: var(--text-primary);
+  touch-action: none; /* Disables double-tap and pinch zoom globally on the page */
+}
+
+/* Allow vertical swipe/scroll on interactive overlays and lists */
+#achievements-list, .sheet-container, #victory-leaderboard-container {
+  touch-action: pan-y !important;
 }
 
 /* Fullscreen Edge-to-Edge Container */

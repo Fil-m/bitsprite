@@ -593,6 +593,21 @@
 
     // Touch controls input binding
     function bindTouchControls() {
+      // Global double-tap and multi-touch pinch-to-zoom prevention
+      let lastTouchEnd = 0;
+      document.addEventListener('touchstart', e => {
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      document.addEventListener('touchend', e => {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+          e.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, { passive: false });
+
       const bindBtn = (id, field) => {
         const btn = document.getElementById(id);
         if (btn) {
