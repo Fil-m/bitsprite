@@ -702,20 +702,43 @@ class BitSpriteGame {
 
     // Gravity calculation
     if (this.isHijackActive) {
-      // Flying non-gravity mode
-      this.player.vy = 0;
-      const isJumpPressed = bindings ? bindings.jump.some(k => this.keysPressed[k]) : (this.keysPressed['KeyW'] || this.keysPressed['ArrowUp'] || this.touchInputs.jump);
-      const isDownPressed = bindings ? bindings.down.some(k => this.keysPressed[k]) : (this.keysPressed['KeyS'] || this.keysPressed['ArrowDown']);
+      // === ПРОСТИЙ ІМПУЛЬС ВГОРУ ДЛЯ МОБІЛКИ ===
+      const isJumpPressed = bindings ? bindings.jump.some(k => this.keysPressed[k]) : 
+                           (this.keysPressed['KeyW'] || this.keysPressed['ArrowUp'] || this.touchInputs.jump);
+
       if (isJumpPressed || this.touchInputs.jump) {
-        this.player.vy = -300;
-      } else if (isDownPressed) {
-        this.player.vy = 300;
-      }
+        this.player.vy -= 300;        // додаємо вгору при кожному оновленні
+      } else if (this.touchInputs.down || 
+                (bindings ? bindings.down.some(k => this.keysPressed[k]) : 
+                (this.keysPressed['KeyS'] || this.keysPressed['ArrowDown']))) {
+        this.player.vy += 280;        // вниз (трохи слабше)
+      } 
+      // якщо нічого не натиснуто — нічого не робимо, швидкість залишається
     } else {
-      // Normal or rowhammer gravity (0.5x)
+      // звичайна гравітація (не чіпаємо)
       const currentGravity = PHYSICS.GRAVITY * (this.cpuFrequency === 0.5 ? 0.5 : 1.0);
       this.player.vy += currentGravity * dt;
     }
+    // Обмежуємо швидкість в антиграві
+    if (this.isHijackActive) {
+      if (this.player.vy < -750) this.player.vy = -750;  // max вгору
+      if (this.player.vy > 650)  this.player.vy = 650;   // max вниз
+    }
+    //if (this.isHijackActive) {
+      // Flying non-gravity mode
+      //this.player.vy = 0;
+      //const isJumpPressed = bindings ? bindings.jump.some(k => this.keysPressed[k]) : (this.keysPressed['KeyW'] || this.keysPressed['ArrowUp'] || this.touchInputs.jump);
+      //const isDownPressed = bindings ? bindings.down.some(k => this.keysPressed[k]) : (this.keysPressed['KeyS'] || this.keysPressed['ArrowDown']);
+      //if (isJumpPressed || this.touchInputs.jump) {
+        //this.player.vy = -300;
+      //} else if (isDownPressed) {
+        //this.player.vy = 300;
+      //}
+    //} else {
+      // Normal or rowhammer gravity (0.5x)
+      //const currentGravity = PHYSICS.GRAVITY * (this.cpuFrequency === 0.5 ? 0.5 : 1.0);
+      //this.player.vy += currentGravity * dt;
+    //}
 
     // Update positions
     this.player.x += this.player.vx * dt;
